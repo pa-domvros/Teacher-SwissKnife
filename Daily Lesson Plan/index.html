@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Daily Lesson Plan — EL/EN (Print Only, No Placeholders, Responsive Fields)</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Greek-capable font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700;800;900&subset=greek&display=swap" rel="stylesheet">
+
+  <style>
+    :root { --page-margin-mm: 12mm; }
+    html, body {
+      background-color: #f3f4f6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+      font-family: "Noto Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+    }
+    .printable-area { background-color: white; }
+    input, textarea, select, button { font-family: inherit; }
+
+    /* A4 print setup */
+    @page { size: A4; margin: var(--page-margin-mm); }
+
+    /* Page-break helpers */
+    .page { break-inside: avoid; page-break-inside: avoid; }
+    .page-break { break-before: page; page-break-before: always; }
+
+    /* Print rules */
+    @media print {
+      body * { visibility: hidden !important; }
+      .printable-area, .printable-area * { visibility: visible !important; }
+      .printable-area {
+        position: absolute; left: 0; top: 0;
+        width: calc(210mm - 2 * var(--page-margin-mm));
+        max-width: none !important; box-shadow: none !important;
+      }
+      .no-print { display: none !important; }
+      textarea, input[type="text"], input[type="time"], input[type="date"] {
+        border: 1px solid #cbd5e1 !important; background-color: #ffffff !important;
+      }
+      textarea { overflow: visible !important; white-space: pre-wrap !important; }
+    }
+
+    textarea { white-space: pre-wrap; resize: vertical; }
+
+    /* Color accents */
+    .title-gradient {
+      background: linear-gradient(90deg, #0ea5e9, #10b981, #8b5cf6);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .btn { transition: transform 0.05s ease; }
+    .btn:active { transform: scale(0.98); }
+    .active-lang { outline: 2px solid rgba(0,0,0,0.15); box-shadow: 0 0 0 2px rgba(255,255,255,0.9) inset; }
+    .section-card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1rem; }
+    .label-chip { font-weight: 700; padding: 0.1rem 0.5rem; border-radius: 0.5rem; flex: 0 0 auto; }
+    /* Responsive field rows: label and input wrap nicely */
+    .field-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
+    .text-input, .date-input {
+      padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.5rem;
+      flex: 1 1 12rem; min-width: 8rem; max-width: 100%;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 p-4 sm:p-6 lg:p-8">
+
+  <!-- Toolbar -->
+  <div class="no-print mx-auto mb-4 flex items-center justify-between gap-3" style="max-width: 1000px;">
+    <div class="flex items-center gap-2">
+      <button id="lang-el" type="button" class="btn px-3 py-2 rounded-lg font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow">Ελληνικά</button>
+      <button id="lang-en" type="button" class="btn px-3 py-2 rounded-lg font-bold bg-sky-600 hover:bg-sky-700 text-white shadow">English</button>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="clear-btn" type="button" class="btn bg-rose-500 hover:bg-rose-600 text-white font-bold py-2 px-4 rounded-lg shadow" data-i18n="clear">Clear</button>
+      <button id="print-btn" type="button" class="btn bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg shadow" data-i18n="print">Print</button>
+    </div>
+  </div>
+
+  <div id="sheet" class="printable-area mx-auto bg-white p-6 sm:p-8 rounded-2xl shadow-lg" style="max-width: 1000px;">
+
+    <!-- Credit line -->
+    <div class="text-sm text-gray-500 italic mb-4">Created: Panagiotis Domvros, English and Drama Educator</div>
+
+    <!-- Header -->
+    <header class="mb-8 pb-4 border-b">
+      <div class="flex flex-col gap-4">
+        <h1 class="text-3xl sm:text-4xl font-extrabold title-gradient" data-i18n="title">Daily Lesson Plan</h1>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 items-start">
+          <div class="field-row">
+            <span class="label-chip bg-sky-100 text-sky-800" data-i18n="course">Course</span>
+            <input type="text" class="text-input">
+          </div>
+          <div class="field-row">
+            <span class="label-chip bg-emerald-100 text-emerald-800" data-i18n="teacher">Teacher</span>
+            <input type="text" class="text-input">
+          </div>
+          <div class="field-row">
+            <span class="label-chip bg-fuchsia-100 text-fuchsia-800" data-i18n="lesson_title">Lesson Title</span>
+            <input type="text" class="text-input">
+          </div>
+          <div class="field-row">
+            <span class="label-chip bg-amber-100 text-amber-800" data-i18n="date">Date</span>
+            <input type="date" class="date-input">
+          </div>
+          <div class="field-row">
+            <span class="label-chip bg-indigo-100 text-indigo-800" data-i18n="period">Period</span>
+            <input type="text" class="text-input">
+          </div>
+          <div class="field-row">
+            <span class="label-chip bg-rose-100 text-rose-800" data-i18n="room">Room</span>
+            <input type="text" class="text-input">
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Sections -->
+    <section class="mb-8 page">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="section-card">
+          <div class="font-bold text-emerald-700 mb-1" data-i18n="standards">Standards / Objectives</div>
+          <textarea class="w-full min-h-[8rem] p-2 border rounded-md"></textarea>
+        </div>
+        <div class="section-card">
+          <div class="font-bold text-indigo-700 mb-1" data-i18n="materials">Materials / Resources</div>
+          <textarea class="w-full min-h-[8rem] p-2 border rounded-md"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <section class="mb-8 page">
+      <div class="section-card">
+        <div class="font-bold text-amber-700 mb-1" data-i18n="warmup">Anticipatory Set / Warm‑Up</div>
+        <textarea class="w-full min-h-[6rem] p-2 border rounded-md"></textarea>
+      </div>
+    </section>
+
+    <section class="mb-8 page">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="section-card">
+          <div class="font-bold text-sky-700 mb-1" data-i18n="direct_instruction">Direct Instruction / Modeling</div>
+          <textarea class="w-full min-h-[8rem] p-2 border rounded-md"></textarea>
+        </div>
+        <div class="section-card">
+          <div class="font-bold text-fuchsia-700 mb-1" data-i18n="guided_practice">Guided Practice</div>
+          <textarea class="w-full min-h-[8rem] p-2 border rounded-md"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <section class="mb-8 page">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="section-card">
+          <div class="font-bold text-rose-700 mb-1" data-i18n="independent_practice">Independent Practice</div>
+          <textarea class="w-full min-h-[8rem] p-2 border rounded-md"></textarea>
+        </div>
+        <div class="section-card">
+          <div class="font-bold text-blue-800 mb-1" data-i18n="assessment">Assessment / Checks for Understanding</div>
+          <textarea class="w-full min-h-[8rem] p-2 border rounded-md"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <section class="mb-8 page">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="section-card">
+          <div class="font-bold text-lime-700 mb-1" data-i18n="differentiation">Differentiation / Accommodations</div>
+          <textarea class="w-full min-h-[8rem] p-2 border rounded-md"></textarea>
+        </div>
+        <div class="section-card">
+          <div class="font-bold text-amber-700 mb-1" data-i18n="closure">Closure / Exit Ticket</div>
+          <textarea class="w-full min-h-[8rem] p-2 border rounded-md"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <section class="mb-8 page">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div class="section-card">
+          <div class="font-bold text-teal-700 mb-1" data-i18n="homework">Homework</div>
+          <textarea class="w-full min-h-[6rem] p-2 border rounded-md"></textarea>
+        </div>
+        <div class="section-card">
+          <div class="font-bold text-gray-700 mb-1" data-i18n="reflection">Reflection / Notes</div>
+          <textarea class="w-full min-h-[6rem] p-2 border rounded-md"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="mt-8 pt-4 border-t text-center text-sm text-gray-500">✨✍️ Devised by Panagiotis Domvros, English and Drama Teacher, All Rights Reserved ✍️✨</footer>
+  </div>
+
+  <script>
+    // ---------- Data ----------
+    const LABELS = {
+      en: {
+        title: "Daily Lesson Plan",
+        course: "Course",
+        teacher: "Teacher",
+        lesson_title: "Lesson Title",
+        date: "Date",
+        period: "Period",
+        room: "Room",
+        standards: "Standards / Objectives",
+        materials: "Materials / Resources",
+        warmup: "Anticipatory Set / Warm‑Up",
+        direct_instruction: "Direct Instruction / Modeling",
+        guided_practice: "Guided Practice",
+        independent_practice: "Independent Practice",
+        assessment: "Assessment / Checks for Understanding",
+        differentiation: "Differentiation / Accommodations",
+        closure: "Closure / Exit Ticket",
+        homework: "Homework",
+        reflection: "Reflection / Notes",
+        clear: "Clear",
+        print: "Print"
+      },
+      el: {
+        title: "Ημερήσιο Πλάνο Μαθήματος",
+        course: "Μάθημα",
+        teacher: "Εκπαιδευτικός",
+        lesson_title: "Τίτλος Μαθήματος",
+        date: "Ημερομηνία",
+        period: "Ώρα",
+        room: "Αίθουσα",
+        standards: "Στόχοι / Προσδοκώμενα Μαθησιακά Αποτελέσματα",
+        materials: "Υλικό / Πηγές",
+        warmup: "Προθέρμανση / Εναρκτήριο",
+        direct_instruction: "Άμεση Διδασκαλία / Μοντελοποίηση",
+        guided_practice: "Καθοδηγούμενη Εξάσκηση",
+        independent_practice: "Αυτόνομη Εξάσκηση",
+        assessment: "Αξιολόγηση / Έλεγχος Κατανόησης",
+        differentiation: "Διαφοροποίηση / Προσαρμογές",
+        closure: "Κλείσιμο / Εξιτήριο (Δραστηριότητα Εξόδου)",
+        homework: "Εργασία για το Σπίτι",
+        reflection: "Αναστοχασμός / Σημειώσεις",
+        clear: "Καθαρισμός",
+        print: "Εκτύπωση"
+      }
+    };
+
+    // ---------- Helpers ----------
+    function autoResizeTextarea(el) {
+      el.style.height = 'auto';
+      el.style.height = (el.scrollHeight + 2) + 'px';
+    }
+    function expandAllTextareas() {
+      document.querySelectorAll('textarea').forEach(el => {
+        autoResizeTextarea(el);
+        el.style.overflow = 'visible';
+      });
+    }
+    function setActiveLangButton(lang) {
+      document.getElementById("lang-el").classList.toggle("active-lang", lang === "el");
+      document.getElementById("lang-en").classList.toggle("active-lang", lang === "en");
+    }
+    function applyLanguage(lang) {
+      const t = LABELS[lang] || LABELS.en;
+      document.querySelectorAll("[data-i18n]").forEach(node => {
+        const key = node.getAttribute("data-i18n");
+        if (t[key]) node.textContent = t[key];
+      });
+      localStorage.setItem("lang", lang);
+      document.documentElement.lang = (lang === "el" ? "el" : "en");
+      setActiveLangButton(lang);
+    }
+
+    // ---------- Build ----------
+    document.addEventListener("DOMContentLoaded", function () {
+      // Auto-size textareas
+      document.querySelectorAll('textarea').forEach(t => {
+        autoResizeTextarea(t);
+        t.addEventListener('input', () => autoResizeTextarea(t));
+      });
+
+      // Print
+      document.getElementById("print-btn").addEventListener("click", () => {
+        expandAllTextareas();
+        window.print();
+      });
+
+      // Clear
+      document.getElementById("clear-btn").addEventListener("click", () => {
+        const lang = localStorage.getItem("lang") || "en";
+        const conf = (lang === "el" ? "Καθαρισμός όλων των πεδίων;" : "Clear all entries?");
+        if (!confirm(conf)) return;
+        document.querySelectorAll('input[type="text"], input[type="time"], input[type="date"], textarea').forEach(el => {
+          el.value = "";
+          if (el.tagName.toLowerCase() === "textarea") autoResizeTextarea(el);
+        });
+      });
+
+      // Language toggle
+      document.getElementById("lang-el").addEventListener("click", () => applyLanguage("el"));
+      document.getElementById("lang-en").addEventListener("click", () => applyLanguage("en"));
+      const saved = localStorage.getItem("lang") || "en";
+      applyLanguage(saved);
+
+      // Ensure expansion for Ctrl/Cmd+P
+      if ('onbeforeprint' in window) window.onbeforeprint = expandAllTextareas;
+    });
+  </script>
+</body>
+</html>

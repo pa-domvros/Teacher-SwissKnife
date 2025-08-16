@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Wheel of Names (Single‑File)</title>
+<style>
+    :root{
+      --bg: #0f172a;          /* slate-900 */
+      --panel: #111827;       /* gray-900 */
+      --panel-2:#0b1220;      /* deeper */
+      --text: #e5e7eb;        /* gray-200 */
+      --muted:#9ca3af;        /* gray-400 */
+      --accent:#60a5fa;       /* blue-400 */
+      --good:#34d399;         /* emerald-400 */
+      --warn:#f59e0b;         /* amber-500 */
+      --bad:#ef4444;          /* red-500 */
+      --ring:#ffffff22;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: radial-gradient(1200px 800px at 10% -10%, #1f2937, transparent),
+                  radial-gradient(1200px 800px at 110% 10%, #1d2433, transparent),
+                  var(--bg);
+      color:var(--text);
+      display:flex; flex-direction:column; gap:16px;
+    }
+    header{
+      padding:16px 20px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+      background: linear-gradient(180deg, #0b1220c0, #0b122000);
+      position:sticky; top:0; backdrop-filter: blur(6px);
+      z-index:5; border-bottom:1px solid #ffffff0d;
+    }
+    .title{font-size:20px; font-weight:700; letter-spacing:.2px}
+    .sub{color:var(--muted); font-size:13px}
+    main{display:grid; grid-template-columns: 1fr 380px; gap:16px; padding:0 16px 20px; max-width:1300px; width:100%; margin:0 auto;}
+    @media (max-width: 980px){ main{grid-template-columns: 1fr} }
+
+    .panel{background: linear-gradient(180deg, var(--panel), var(--panel-2)); border:1px solid #ffffff12; border-radius:16px; box-shadow: 0 10px 30px #00000055;}
+    .canvas-wrap{padding:16px; display:grid; grid-template-rows:auto 1fr auto; gap:12px;}
+    .wheel-box{position:relative; display:flex; align-items:center; justify-content:center; min-height:260px;}
+    canvas{max-width:100%; height:auto; display:block;}
+.pointer{
+  position:absolute; top:-4px; left:50%; transform:translateX(-50%);
+  width:0; height:0;
+  border-left:12px solid transparent; border-right:12px solid transparent;
+  border-bottom:15px solid var(--accent);
+  filter: drop-shadow(0 4px 6px #0008);
+}
+
+    .controls{display:flex; flex-wrap:wrap; gap:8px;}
+    button, .btn{
+      appearance:none; border:none; padding:10px 14px; border-radius:999px; background:#111827; color:var(--text); cursor:pointer; font-weight:600; border:1px solid #ffffff1a;
+      transition: transform .05s ease, background .2s ease, border-color .2s ease; user-select:none;
+    }
+    button:hover{background:#172036; border-color:#ffffff30}
+    button:active{transform:translateY(1px)}
+    .btn-accent{background: linear-gradient(180deg, #1e3a8a, #1f4fb3); border-color:#60a5fa66}
+    .btn-accent:hover{background: linear-gradient(180deg, #2346a6, #285fce)}
+    .btn-good{background: linear-gradient(180deg, #0f766e, #059669)}
+
+    .sidebar{padding:14px; display:grid; gap:12px; align-content:start}
+    .section{display:grid; gap:8px}
+    .section h3{margin:0; font-size:14px; letter-spacing:.2px; text-transform:uppercase; color:#a3b2d1}
+
+    .pill{
+      display:flex; align-items:center; gap:8px; background:#101826; border:1px solid #ffffff14; padding:8px 10px; border-radius:12px;
+    }
+    .pill input[type="text"]{flex:1; background:transparent; border:none; outline:none; color:var(--text); font-size:14px}
+    .list{display:flex; flex-wrap:wrap; gap:8px}
+    .chip{display:inline-flex; align-items:center; gap:6px; padding:8px 10px; border-radius:999px; background:#0e1624; border:1px solid #ffffff14; font-size:14px}
+    .chip button{background:transparent; border:none; color:#93a3c3; cursor:pointer; padding:0 4px}
+
+    textarea{width:100%; min-height:90px; resize:vertical; border-radius:12px; background:#0c1422; color:var(--text); border:1px solid #ffffff14; padding:10px; font-family:inherit}
+
+    .row{display:flex; gap:8px; flex-wrap:wrap}
+    .grow{flex:1}
+    label{font-size:13px; color:#9badcf}
+    input[type="checkbox"]{transform:translateY(1px)}
+    input[type="range"]{width:100%}
+
+    .result{display:flex; align-items:center; justify-content:center; font-size:32px; font-weight:800; padding:8px; min-height:48px}
+
+    .history{display:flex; flex-wrap:wrap; gap:8px}
+    .history .item{padding:6px 10px; border-radius:999px; background:#121a2b; border:1px solid #ffffff14}
+
+    .footer-note{font-size:12px; color:#94a3b8; text-align:center; padding:8px 12px}
+
+    .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:12px; padding:2px 6px; border-radius:6px; background:#0b1220; border:1px solid #ffffff22}
+
+    .ring{outline:2px solid var(--ring); outline-offset:2px}
+  </style>
+</head>
+<body>
+<header>
+<div class="title" id="titleText">🎡 Wheel of Names<button id="clear-all-names" style="margin-left:8px; padding:6px 10px; border-radius:6px; border:1px solid #e5e7eb; background:#f3f4f6; cursor:pointer;" type="button">Clear All Names</button></div><div class="sub">Created: Panagiotis Domvros, English and Drama Educator</div>
+<div class="sub" id="subtitleText">A lightweight, offline, single‑file spinner inspired by wheelofnames.com</div>
+<span style="flex:1"></span>
+<button id="fullscreenBtn" title="Toggle Fullscreen">⛶ Fullscreen</button><button class="btn" id="lang-el" title="Μετάβαση στα Ελληνικά">Ελληνικά</button><button class="btn" id="lang-en" style="margin-left:8px;" title="Switch to English">English</button>
+</header>
+<main>
+<!-- Left: Wheel -->
+<section class="panel canvas-wrap">
+<div class="controls">
+<button class="btn-accent" id="spinBtn">▶️ Spin</button>
+<button id="shuffleBtn">🔀 Shuffle</button>
+<button id="clearBtn">🧹 Clear</button>
+<button id="sampleBtn">✨ Add Sample Names</button>
+<label class="pill"><input checked="" id="noRepeats" type="checkbox"/> No repeats<span id="noRepeatsLabel"> No repeats</span></label>
+</div>
+<div class="wheel-box">
+<div class="pointer"></div>
+<canvas aria-label="Wheel canvas" height="576" id="wheel" width="576"></canvas>
+</div>
+<div class="result" id="result">—</div>
+<div aria-live="polite" class="history" id="history"></div>
+<div class="footer-note" id="tipText">Tip: Paste a list (one name per line) and press <span class="kbd">Enter</span> to add. Press <span class="kbd">Space</span> to spin.</div>
+</section>
+<!-- Right: Sidebar -->
+<aside class="panel sidebar">
+<div class="section">
+<h3 id="sectionAddNames">Add Names</h3>
+<div class="pill">
+<input id="nameInput" placeholder="Type a name and hit Enter…" type="text"/>
+<button id="addBtn" title="Add name">＋</button>
+</div>
+<textarea id="bulk" placeholder="Or paste many names here (one per line) and click 'Add All'."></textarea>
+<div class="row">
+<button class="grow" id="addAllBtn">Add All</button>
+<button id="dedupeBtn">Dedupe</button>
+</div>
+<div class="list" id="list"></div>
+</div>
+<div class="section">
+<h3 id="sectionOptions">Options</h3>
+<label>Spin duration (<span id="durVal">5.0</span>s)</label>
+<input id="duration" max="12" min="2" step="0.5" type="range" value="5"/>
+<label>Revolutions (<span id="revVal">4</span>–<span id="revValMax">7</span>)</label>
+<input id="revs" max="10" min="3" step="1" type="range" value="4"/>
+<label id="labelTextSize">Text size</label>
+<input id="textSize" max="34" min="10" step="1" type="range" value="18"/>
+<label><input checked="" id="tickSound" type="checkbox"/> Tick sound</label>
+<label><input checked="" id="confetti" type="checkbox"/> Confetti on win</label>
+</div>
+<div class="section">
+<h3 id="sectionSaveLoad">Save/Load</h3>
+<div class="row">
+<button id="saveBtn">💾 Save to Browser</button>
+<button id="loadBtn">📂 Load</button>
+<button id="exportBtn">⬇️ Export .json</button>
+<input accept="application/json" id="importFile" style="display:none" type="file"/>
+<button id="importBtn">⬆️ Import</button>
+</div>
+</div>
+</aside>
+</main>
+<script>let __audioCtx = null;
+
+  // --- Utility ---
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
+  const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
+  const rand = (min, max) => Math.random() * (max - min) + min;
+  const shuffleInPlace = (arr) => { for (let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; } return arr; };
+
+  // --- State ---
+  const state = {
+    items: [],
+    history: [],
+    angle: -Math.PI/2, // pointer at 12 o'clock
+    spinning: false,
+    lastTickIndex: null,
+    colors: [
+      '#4f46e5','#22c55e','#f59e0b','#ef4444','#06b6d4','#eab308','#a855f7','#10b981','#f97316','#3b82f6',
+      '#14b8a6','#8b5cf6','#84cc16','#f43f5e','#0ea5e9','#f59e0b','#dc2626','#16a34a'
+    ],
+    textSize: 18,
+  };
+
+  // --- Canvas Setup ---
+  const canvas = document.getElementById('wheel');
+  const ctx = canvas.getContext('2d');
+
+  function resizeCanvasForDPI(){
+    const ratio = window.devicePixelRatio || 1;
+    const size = Math.min(canvas.clientWidth || 900, canvas.clientHeight || 900) || 900;
+    const dim = 576; // keep fixed intrinsic size for clarity, scale by CSS
+    canvas.width = dim * ratio; canvas.height = dim * ratio; canvas.style.width = dim+'px'; canvas.style.height = dim+'px';
+    ctx.setTransform(ratio,0,0,ratio,0,0);
+  }
+
+  window.addEventListener('resize', () => { resizeCanvasForDPI(); drawWheel(); });
+  resizeCanvasForDPI();
+
+  // --- Drawing ---
+  function drawWheel(){
+    const W = canvas.width / (window.devicePixelRatio||1);
+    const H = canvas.height / (window.devicePixelRatio||1);
+    const cx = W/2, cy = H/2; const R = Math.min(W,H)/2 - 20;
+
+    ctx.clearRect(0,0,W,H);
+
+    // Outer glow
+    const grd = ctx.createRadialGradient(cx, cy, R*0.2, cx, cy, R*1.05);
+    grd.addColorStop(0,'#ffffff08'); grd.addColorStop(1,'#000000aa');
+    ctx.fillStyle = grd; ctx.beginPath(); ctx.arc(cx,cy,R*1.07,0,Math.PI*2); ctx.fill();
+
+    const n = state.items.length || 1; // avoid division by zero
+    const slice = Math.PI * 2 / n;
+
+    // Draw slices
+    for (let i=0;i<n;i++){
+      const start = state.angle + i*slice;
+      const end   = start + slice;
+      ctx.beginPath();
+      ctx.moveTo(cx,cy);
+      ctx.arc(cx,cy,R,start,end);
+      ctx.closePath();
+      const col = state.colors[i % state.colors.length];
+      ctx.fillStyle = col + 'cc';
+      ctx.fill();
+
+      // slice border
+      ctx.strokeStyle = '#ffffff1a'; ctx.lineWidth = 2; ctx.stroke();
+
+      // Text
+      const label = state.items[i]||'';
+      ctx.save();
+      ctx.translate(cx,cy);
+      ctx.rotate((start+end)/2);
+      ctx.textAlign = 'right';
+      ctx.fillStyle = '#e5e7eb';
+      ctx.font = `600 ${state.textSize}px system-ui, -apple-system, Segoe UI, Roboto`;
+      wrapText(ctx, label, R-16, slice, state.textSize);
+      ctx.restore();
+    }
+
+    // Center cap
+    ctx.beginPath(); ctx.arc(cx,cy, R*0.08, 0, Math.PI*2); ctx.fillStyle = '#0ea5e9'; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx,cy, R*0.06, 0, Math.PI*2); ctx.fillStyle = '#111827'; ctx.fill();
+
+    // Top marker shadow
+    ctx.save();
+    ctx.translate(cx, cy - R - 8);
+    ctx.fillStyle = '#00000066';
+    ctx.beginPath(); ctx.arc(0, 18, 12, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  function wrapText(ctx, text, maxWidth, arcAngle, lineHeight){
+    // simple wrap: split to words, grow line until width exceeds maxWidth
+    const words = (text+"").split(/\s+/);
+    let line = '';
+    const lines = [];
+    for (const w of words){
+      const test = line ? line + ' ' + w : w;
+      if (ctx.measureText(test).width < maxWidth) line = test; else { lines.push(line); line = w; }
+    }
+    if (line) lines.push(line);
+    // draw from outer to inner
+    const offset = Math.min(lines.length, Math.floor((arcAngle * 180/Math.PI)/2));
+    for (let i=0;i<lines.length;i++){
+      ctx.save();
+      ctx.rotate(0);
+      ctx.fillText(lines[i], maxWidth - i*lineHeight*1.05, 6);
+      ctx.restore();
+    }
+  }
+
+  // --- Spin Logic ---
+  function easeOutCubic(t){ return 1 - Math.pow(1 - t, 3); }
+  function spin(){
+    if (state.spinning || state.items.length === 0) return;
+    state.spinning = true; $('#spinBtn').classList.add('ring');
+    const dur = parseFloat($('#duration').value); // seconds
+    const revMin = parseInt($('#revs').value), revMax = Math.max(revMin+3, 7);
+
+    const n = state.items.length; const slice = Math.PI*2/n;
+    const targetIndex = Math.floor(rand(0,n));
+    const targetAngle = -Math.PI/2 - (targetIndex + 0.5)*slice; // center of slice under pointer
+
+    const extraTurns = rand(revMin, revMax) * Math.PI*2;
+
+    const startAngle = state.angle;
+    let delta = targetAngle - startAngle;
+    // normalize delta to the smallest positive angle + full revolutions
+    while (delta < 0) delta += Math.PI*2;
+    delta += extraTurns;
+
+    const start = performance.now();
+
+    // Audio setup
+    const doTick = $('#tickSound').checked;
+    let tickOsc = null;
+    if (doTick && 'AudioContext' in window){ audioCtx = new AudioContext(); }
+
+    const totalTicks = n * Math.ceil((delta)/(Math.PI*2));
+    let nextTickAngle = startAngle + slice; // first boundary after start
+
+    function playTick(){
+      if (!__audioCtx) return;
+      const o = __audioCtx.createOscillator(); const g = __audioCtx.createGain();
+      o.type = 'square'; o.frequency.value = 880; g.gain.value = 0.04; o.connect(g); g.connect(audioCtx.destination);
+      o.start(); o.stop(audioCtx.currentTime + 0.03);
+    }
+
+    function step(now){
+      const t = clamp((now - start) / (dur*1000), 0, 1);
+      const eased = easeOutCubic(t);
+      state.angle = startAngle + delta * eased;
+
+      // tick when crossing boundaries
+      if (doTick){
+        while (state.angle > nextTickAngle){ playTick(); nextTickAngle += slice; }
+      }
+
+      drawWheel();
+
+      if (t < 1) requestAnimationFrame(step); else {
+        state.spinning = false; $('#spinBtn').classList.remove('ring');
+        settleWinner();
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
+  function settleWinner(){
+    const n = state.items.length; if (!n) return;
+    const slice = Math.PI*2/n;
+    // Which index is at pointer (12 o'clock slightly below triangle)
+    const a = (state.angle % (Math.PI*2) + Math.PI*2) % (Math.PI*2);
+    const fromTop = (a + Math.PI/2) % (Math.PI*2);
+    let idx = Math.floor(fromTop / slice);
+    idx = (n - 1 - idx + n) % n; // invert due to arc direction
+
+    const winner = state.items[idx];
+    $('#result').textContent = winner || '—';
+    state.history.unshift(winner);
+    renderHistory();
+
+    if ($('#confetti').checked) launchConfetti();
+
+    if ($('#noRepeats').checked){
+      state.items.splice(idx,1);
+      renderList();
+      drawWheel();
+    }
+  }
+
+  // --- Confetti --- (minimal, no deps)
+  function launchConfetti(){
+    const count = 160;
+    const end = Date.now() + 900;
+    const defaults = { origin: { x: 0.5, y: 0.1 } };
+
+    const canvasConf = document.createElement('canvas');
+    Object.assign(canvasConf.style,{position:'fixed', inset:0, pointerEvents:'none'});
+    document.body.appendChild(canvasConf);
+    const cctx = canvasConf.getContext('2d');
+    const DPR = window.devicePixelRatio||1; canvasConf.width = innerWidth*DPR; canvasConf.height = innerHeight*DPR; cctx.setTransform(DPR,0,0,DPR,0,0);
+
+    const pieces = Array.from({length:count}, () => ({
+      x: innerWidth/2 + rand(-80,80), y: innerHeight*0.08 + rand(-20,20), r: rand(2,5),
+      vx: rand(-5,5), vy: rand(-3,3), rot: rand(0,Math.PI*2), vr: rand(-0.2,0.2), col: `hsl(${Math.floor(rand(0,360))} 90% 60%)`
+    }));
+
+    function loop(){
+      cctx.clearRect(0,0,innerWidth,innerHeight);
+      for (const p of pieces){
+        p.vy += 0.12; p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+        cctx.save(); cctx.translate(p.x,p.y); cctx.rotate(p.rot);
+        cctx.fillStyle = p.col; cctx.fillRect(-p.r,-p.r,p.r*2,p.r*2); cctx.restore();
+      }
+      if (Date.now() < end){ requestAnimationFrame(loop); } else { canvasConf.remove(); }
+    }
+    loop();
+  }
+
+  // --- List UI ---
+  const listEl = $('#list');
+  function renderList(){
+    listEl.innerHTML = '';
+    state.items.forEach((name, i) => {
+      const el = document.createElement('span'); el.className='chip'; el.draggable=true;
+      el.innerHTML = `<span>${escapeHtml(name)}</span> <button title="Remove" data-i="${i}">✕</button>`;
+      listEl.appendChild(el);
+    });
+    // remove handlers
+    listEl.querySelectorAll('button').forEach(btn => btn.onclick = () => { state.items.splice(parseInt(btn.dataset.i),1); renderList(); drawWheel(); saveLocal(); });
+  }
+
+  function renderHistory(){
+    const h = $('#history'); h.innerHTML='';
+    state.history.slice(0,20).forEach(v => { const el=document.createElement('span'); el.className='item'; el.textContent=v; h.appendChild(el); });
+  }
+
+  function addName(v){ v = (v||'').trim(); if(!v) return; state.items.push(v); renderList(); drawWheel(); saveLocal(); }
+
+  function addBulk(txt){
+    const names = txt.split(/\r?\n/).map(s=>s.trim()).filter(Boolean);
+    for (const n of names) addName(n);
+  }
+
+  function dedupe(){
+    const seen = new Set(); state.items = state.items.filter(n => { const key=n.toLowerCase(); if (seen.has(key)) return false; seen.add(key); return true; });
+    renderList(); drawWheel(); saveLocal();
+  }
+
+  function shuffle(){ shuffleInPlace(state.items); renderList(); drawWheel(); saveLocal(); }
+
+  function escapeHtml(s){ return s.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[m])); }
+
+  // --- Local Storage ---
+  const KEY = 'wheel-of-names-items-v1';
+  function saveLocal(){ localStorage.setItem(KEY, JSON.stringify({items:state.items, textSize:state.textSize})); }
+  function loadLocal(){ try{ const o = JSON.parse(localStorage.getItem(KEY)||'{}'); if (Array.isArray(o.items)) state.items = o.items; if (o.textSize) state.textSize=o.textSize; }catch{} }
+
+  // --- Event wiring ---
+  $('#spinBtn').onclick = spin;
+  $('#shuffleBtn').onclick = shuffle;
+  $('#clearBtn').onclick = () => { state.items = []; renderList(); drawWheel(); saveLocal(); };
+  $('#sampleBtn').onclick = () => { addBulk('Alice\nBob\nCharlie\nDiana\nEleni\nFarid\nGiorgos\nHana\nIris\nJamal'); };
+  $('#addBtn').onclick = () => { addName($('#nameInput').value); $('#nameInput').value=''; $('#nameInput').focus(); };
+  $('#nameInput').addEventListener('keydown', e => { if (e.key==='Enter'){ e.preventDefault(); $('#addBtn').click(); } });
+  $('#bulk').addEventListener('keydown', e => { if (e.key==='Enter' && (e.metaKey || e.ctrlKey)){ e.preventDefault(); $('#addAllBtn').click(); } });
+  $('#addAllBtn').onclick = () => { addBulk($('#bulk').value); $('#bulk').value=''; };
+  $('#dedupeBtn').onclick = dedupe;
+
+  $('#duration').addEventListener('input', e => { $('#durVal').textContent = parseFloat(e.target.value).toFixed(1); });
+  $('#revs').addEventListener('input', e => { $('#revVal').textContent = e.target.value; $('#revValMax').textContent = Math.max(parseInt(e.target.value)+3,7); });
+  $('#textSize').addEventListener('input', e => { state.textSize = parseInt(e.target.value); drawWheel(); saveLocal(); });
+
+  $('#exportBtn').onclick = () => {
+    const blob = new Blob([JSON.stringify({items:state.items}, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href=url; a.download='wheel-items.json'; a.click(); setTimeout(()=>URL.revokeObjectURL(url), 1000);
+  };
+  $('#importBtn').onclick = () => { $('#importFile').click(); };
+  $('#importFile').addEventListener('change', async (e) => {
+    const file = e.target.files?.[0]; if (!file) return; const text = await file.text();
+    try{ const json = JSON.parse(text); if (Array.isArray(json.items)) { state.items = json.items; renderList(); drawWheel(); saveLocal(); } }
+    catch(err){ alert('Invalid JSON'); }
+    e.target.value = '';
+  });
+
+  $('#fullscreenBtn').onclick = () => { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); };
+
+  document.addEventListener('keydown', (e) => {
+    if (e.target && (e.target.tagName==='INPUT' || e.target.tagName==='TEXTAREA')) return; // ignore typing into fields
+    if (e.code === 'Space'){ e.preventDefault(); spin(); }
+  });
+
+  // --- Init ---
+  loadLocal(); renderList(); drawWheel();
+  $('#durVal').textContent = parseFloat($('#duration').value).toFixed(1);
+  $('#revVal').textContent = $('#revs').value; $('#revValMax').textContent = Math.max(parseInt($('#revs').value)+3,7);
+
+  </script>
+<footer style="text-align:center; padding:12px; color:#94a3b8; font-size:12px;">✨✍️ Devised by Panagiotis Domvros, English and Drama Teacher, All Rights Reserved ✍️✨</footer><script>
+(function(){
+  function clearNamesArray() {
+    if (window.segments && Array.isArray(window.segments)) {
+      window.segments.length = 0;
+    }
+    if (typeof refreshWheel === 'function') { try { refreshWheel(); } catch(e){} }
+    if (typeof draw === 'function') { try { draw(); } catch(e){} }
+  }
+  function clearNamesUI() {
+    var ta = document.querySelector('textarea');
+    if (ta) ta.value = '';
+    var list = document.querySelector('ul, ol');
+    if (list && list.children && list.children.length) {
+      while (list.firstChild) list.removeChild(list.firstChild);
+    }
+  }
+  var btn = document.getElementById('clear-all-names');
+  if (btn) {
+    btn.addEventListener('click', function(){
+      clearNamesArray();
+      clearNamesUI();
+    });
+  }
+})();
+</script>
+<script>
+(function(){
+  const I18N = {
+    en: {
+      title: "🎡 Wheel of Names",
+      subtitle: "A lightweight, offline, single‑file spinner inspired by wheelofnames.com",
+      spin: "▶️ Spin",
+      shuffle: "🔀 Shuffle",
+      clear: "🧹 Clear",
+      addSample: "✨ Add Sample Names",
+      noRepeats: " No repeats",
+      tip: "Tip: Paste a list (one name per line) and press <span class=\"kbd\">Enter</span> to add. Press <span class=\"kbd\">Space</span> to spin.",
+      addNames: "Add Names",
+      namePh: "Type a name and hit Enter…",
+      addBtn: "＋",
+      bulkPh: "Or paste many names here (one per line) and click 'Add All'.",
+      addAll: "Add All",
+      dedupe: "Dedupe",
+      options: "Options",
+      spinDuration: "Spin duration",
+      secondsUnit: "s",
+      revolutions: "Revolutions",
+      textSize: "Text size",
+      tick: " Tick sound",
+      confetti: " Confetti on win",
+      saveLoad: "Save/Load",
+      save: "💾 Save to Browser",
+      load: "📂 Load",
+      export: "⬇️ Export .json",
+      import: "⬆️ Import",
+      fullscreenTitle: "Toggle Fullscreen",
+      invalidJson: "Invalid JSON",
+      clearAllNames: "Clear All Names"
+    },
+    el: {
+      title: "🎡 Τροχός Ονομάτων",
+      subtitle: "Ελαφρύ, εκτός σύνδεσης, μονοσέλιδο εργαλείο έμπνευσης από το wheelofnames.com",
+      spin: "▶️ Περιστροφή",
+      shuffle: "🔀 Ανάμειξη",
+      clear: "🧹 Καθαρισμός",
+      addSample: "✨ Προσθήκη Δειγματικών Ονομάτων",
+      noRepeats: " Χωρίς επαναλήψεις",
+      tip: "Συμβουλή: Επικολλήστε λίστα (ένα όνομα ανά γραμμή) και πατήστε <span class=\"kbd\">Enter</span> για προσθήκη. Πατήστε <span class=\"kbd\">Space</span> για περιστροφή.",
+      addNames: "Προσθήκη Ονομάτων",
+      namePh: "Πληκτρολογήστε όνομα και πατήστε Enter…",
+      addBtn: "＋",
+      bulkPh: "Ή επικολλήστε πολλά ονόματα εδώ (ένα ανά γραμμή) και πατήστε «Προσθήκη Όλων».",
+      addAll: "Προσθήκη Όλων",
+      dedupe: "Αφαίρεση Διπλότυπων",
+      options: "Επιλογές",
+      spinDuration: "Διάρκεια περιστροφής",
+      secondsUnit: "δ",
+      revolutions: "Περιστροφές",
+      textSize: "Μέγεθος κειμένου",
+      tick: " Ήχος κλικ",
+      confetti: " Κονφετί στη νίκη",
+      saveLoad: "Αποθήκευση/Φόρτωση",
+      save: "💾 Αποθήκευση στον Περιηγητή",
+      load: "📂 Φόρτωση",
+      export: "⬇️ Εξαγωγή .json",
+      import: "⬆️ Εισαγωγή",
+      fullscreenTitle: "Εναλλαγή πλήρους οθόνης",
+      invalidJson: "Μη έγκυρο JSON",
+      clearAllNames: "Καθαρισμός Όλων"
+    }
+  };
+
+  function applyLang(lang){
+    const t = I18N[lang] || I18N.en;
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.innerHTML = val; };
+    const setTxt = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    const setPh = (id, val) => { const el = document.getElementById(id); if (el) el.setAttribute('placeholder', val); };
+
+    set('titleText', t.title);
+    set('subtitleText', t.subtitle);
+    setTxt('spinBtn', t.spin);
+    setTxt('shuffleBtn', t.shuffle);
+    setTxt('clearBtn', t.clear);
+    setTxt('sampleBtn', t.addSample);
+    const nr = document.getElementById('noRepeatsLabel'); if (nr) nr.textContent = t.noRepeats;
+    set('tipText', t.tip);
+    setTxt('sectionAddNames', t.addNames);
+    setPh('nameInput', t.namePh);
+    setTxt('addBtn', t.addBtn);
+    setPh('bulk', t.bulkPh);
+    setTxt('addAllBtn', t.addAll);
+    setTxt('dedupeBtn', t.dedupe);
+    setTxt('sectionOptions', t.options);
+    set('spinDurationText', t.spinDuration);
+    set('durUnit', t.secondsUnit);
+    set('revsText', t.revolutions);
+    setTxt('labelTextSize', t.textSize);
+    const tick = document.getElementById('tickText'); if (tick) tick.textContent = t.tick;
+    const conf = document.getElementById('confettiText'); if (conf) conf.textContent = t.confetti;
+    setTxt('sectionSaveLoad', t.saveLoad);
+    setTxt('saveBtn', t.save);
+    setTxt('loadBtn', t.load);
+    setTxt('exportBtn', t.export);
+    setTxt('importBtn', t.import);
+    const fs = document.getElementById('fullscreenBtn'); if (fs) fs.title = t.fullscreenTitle;
+    const clearAll = document.getElementById('clear-all-names'); if (clearAll) clearAll.textContent = t.clearAllNames;
+
+    document.documentElement.lang = (lang === 'el' ? 'el' : 'en');
+    localStorage.setItem('wheel_lang', lang);
+  }
+
+  // Wire toggles
+  function initLang(){
+    const saved = localStorage.getItem('wheel_lang') || 'en';
+    applyLang(saved);
+    const enBtn = document.getElementById('lang-en');
+    const elBtn = document.getElementById('lang-el');
+    if (enBtn) enBtn.onclick = ()=>applyLang('en');
+    if (elBtn) elBtn.onclick = ()=>applyLang('el');
+  }
+
+  // Patch error messages
+  const _alert = window.alert;
+  window.alert = function(msg){
+    const lang = localStorage.getItem('wheel_lang') || 'en';
+    if (msg && /Invalid JSON/i.test(msg)){
+      msg = (lang === 'el') ? I18N.el.invalidJson : I18N.en.invalidJson;
+    }
+    return _alert.call(window, msg);
+  };
+
+  if (document.readyState === 'complete' || document.readyState === 'interactive'){
+    initLang();
+  } else {
+    document.addEventListener('DOMContentLoaded', initLang);
+  }
+})();
+</script>
+</body>
+</html>

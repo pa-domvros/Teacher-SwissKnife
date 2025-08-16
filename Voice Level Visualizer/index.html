@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Level</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Lobster&family=Noto+Sans+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            font-family: 'Caveat', cursive;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-family: 'Lobster', cursive;
+            font-size: clamp(1.9em, 7.6vw, 2.85em); /* Base font size reduced by 5% */
+            margin-bottom: 10px;
+            color: #f1c40f;
+            line-height: 1.1;
+            padding: 0 10px;
+            max-width: 100%; /* Prevent overflow */
+            white-space: normal; /* Allow text to wrap naturally */
+            overflow: visible; /* Ensure text is not clipped */
+            word-break: normal; /* Default word breaking behavior */
+        }
+
+
+        .language-toggle {
+            margin-bottom: 30px;
+        }
+        .language-toggle button {
+            background: #f1c40f;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+            transition: background 0.3s ease;
+            font-size: 0.9em;
+        }
+        .language-toggle button:hover {
+            background: #e67e22;
+        }
+        
+        .visualizer-container {
+            position: relative;
+            height: auto;
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .levels-display {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 20px;
+            background-color: #34495e;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            position: relative;
+            z-index: 1;
+            width: auto;
+            max-width: 90vw;
+            margin: 0 auto;
+        }
+
+        .level-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            cursor: pointer;
+            transition: transform 0.2s ease-in-out;
+        }
+        
+        .level-item:hover {
+            transform: scale(1.05);
+        }
+
+        .level-square {
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.375em; /* Base font size reduced by 5% */
+            font-weight: bold;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .level-text {
+            font-size: 2.375em; /* Base font size reduced by 5% */
+            white-space: nowrap;
+        }
+
+        /* --- Level Specific Colors --- */
+        .level-0 .level-square { background-color: #16a085; }
+        .level-1 .level-square { background-color: #27ae60; }
+        .level-2 .level-square { background-color: #3498db; }
+        .level-3 .level-square { background-color: #f1c40f; }
+        .level-4 .level-square { background-color: #e67e22; }
+        .level-5 .level-square { background-color: #e74c3c; }
+
+        /* --- Flashing Frame --- */
+        .flashing-frame {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            border: 8px solid transparent;
+            box-sizing: border-box;
+            border-radius: 20px;
+            transition: transform 0.3s ease-in-out, height 0.3s ease-in-out;
+            animation: flash-border 1.5s infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes flash-border {
+            0%, 100% { border-color: #f39c12; box-shadow: 0 0 15px #f39c12; }
+            50% { border-color: transparent; box-shadow: 0 0 5px #f39c12; }
+        }
+
+        /* --- Footer Style (Unchanged) --- */
+        .footer {
+            margin-top: auto;
+            font-size: 1.2em;
+            padding-top: 20px;
+            color: #bdc3c7;
+        }
+
+        /* --- Greek Font Size and Style Adjustment --- */
+        body.lang-el h1 {
+            font-size: clamp(1.52em, 6.08vw, 2.28em); /* Total 24% smaller */
+            font-style: italic;
+        }
+        body.lang-el .level-text {
+            font-size: 1.9em; /* Total 24% smaller */
+            font-style: italic;
+        }
+        /* No specific Greek rule for footer to keep it unchanged */
+
+        /* --- Mobile Optimization --- */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: clamp(1.9em, 7.6vw, 2.375em); /* Base font size reduced by 5% */
+                margin-bottom: 10px;
+            }
+            .language-toggle {
+                margin-bottom: 20px;
+            }
+            .language-toggle button {
+                font-size: 0.8em;
+            }
+            .level-item {
+                gap: 10px;
+            }
+            .level-square {
+                width: 40px;
+                height: 40px;
+                font-size: 1.9em; /* Base font size reduced by 5% */
+            }
+            .level-text {
+                font-size: 1.71em; /* Base font size reduced by 5% */
+            }
+            .levels-display {
+                gap: 10px;
+                padding: 10px;
+            }
+            .flashing-frame {
+                border-width: 5px;
+            }
+            .footer {
+                font-size: 1em; /* Unchanged */
+            }
+
+            /* --- Greek Font Size and Style Adjustment (Mobile) --- */
+            body.lang-el h1 {
+                font-size: clamp(1.52em, 6.08vw, 1.9em); /* Total 24% smaller */
+            }
+            body.lang-el .level-text {
+                font-size: 1.368em; /* Total 24% smaller */
+            }
+            /* No specific Greek rule for footer to keep it unchanged */
+        }
+    </style>
+</head>
+<body>
+
+    <h1 id="main-title">Voice Level</h1>
+    
+    <div class="language-toggle">
+        <button id="langToggleBtn">Ελληνικά</button>
+    </div>
+
+    <div class="visualizer-container">
+        <div class="levels-display">
+            <div class="flashing-frame"></div>
+            <div class="level-item level-0" data-level="0">
+                <div class="level-square">0</div>
+                <div class="level-text" data-en="Silent" data-el="Σιωπή">Silent</div>
+            </div>
+            <div class="level-item level-1" data-level="1">
+                <div class="level-square">1</div>
+                <div class="level-text" data-en="Whisper" data-el="Ψίθυρος">Whisper</div>
+            </div>
+            <div class="level-item level-2" data-level="2">
+                <div class="level-square">2</div>
+                <div class="level-text" data-en="Partner" data-el="Διπλανός/ή">Partner</div>
+            </div>
+            <div class="level-item level-3" data-level="3">
+                <div class="level-square">3</div>
+                <div class="level-text" data-en="Group" data-el="Ομάδα">Group</div>
+            </div>
+            <div class="level-item level-4" data-level="4">
+                <div class="level-square">4</div>
+                <div class="level-text" data-en="Class" data-el="Τάξη">Class</div>
+            </div>
+            <div class="level-item level-5" data-level="5">
+                <div class="level-square">5</div>
+                <div class="level-text" data-en="Whole school" data-el="Σχολείο">Whole school</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        ✨✍️ Devised by Panagiotis Domvros, English and Drama Teacher ✍️✨
+    </div>
+
+    <script>
+        const levels = document.querySelectorAll('.level-item');
+        const flashingFrame = document.querySelector('.flashing-frame');
+        const langToggleBtn = document.getElementById('langToggleBtn');
+        const titleElement = document.getElementById('main-title');
+        const levelTexts = document.querySelectorAll('.level-text');
+        const footerElement = document.querySelector('.footer');
+
+        const translations = {
+            en: {
+                title: 'Voice Level',
+                footer: '✨✍️ Devised by Panagiotis Domvros, English and Drama Teacher ✍️✨',
+                buttonText: 'Ελληνικά',
+            },
+            el: {
+                title: 'Ένταση Φωνής',
+                footer: '✨✍️ Δημιουργία: Παναγιώτης Δόμβρος, Εκπαιδευτικός Αγγλικών - Θεατρολόγος ✍️✨',
+                buttonText: 'English',
+            }
+        };
+
+        let currentLang = 'en';
+
+        function updateFramePosition(targetLevelElement) {
+            if (targetLevelElement) {
+                const yOffset = targetLevelElement.offsetTop;
+                const height = targetLevelElement.offsetHeight;
+                flashingFrame.style.transform = `translateY(${yOffset}px)`;
+                flashingFrame.style.height = `${height}px`;
+            }
+        }
+
+        function setLanguage(lang) {
+            // Add or remove the class from the body for CSS targeting
+            if (lang === 'el') {
+                document.body.classList.add('lang-el');
+            } else {
+                document.body.classList.remove('lang-el');
+            }
+
+            titleElement.textContent = translations[lang].title;
+            footerElement.textContent = translations[lang].footer;
+            langToggleBtn.textContent = translations[lang].buttonText;
+            levelTexts.forEach(text => {
+                text.textContent = text.dataset[lang];
+            });
+            currentLang = lang;
+            
+            // Use a timeout to ensure the DOM has updated before calculating position
+            setTimeout(() => {
+                const activeLevel = document.querySelector('.level-item[style*="transform: translateY"]');
+                const targetLevel = activeLevel || document.querySelector('.level-item[data-level="0"]');
+                updateFramePosition(targetLevel);
+            }, 0);
+        }
+
+        langToggleBtn.addEventListener('click', () => {
+            const newLang = currentLang === 'en' ? 'el' : 'en';
+            setLanguage(newLang);
+        });
+
+        levels.forEach(item => {
+            item.addEventListener('click', () => {
+                updateFramePosition(item);
+            });
+        });
+
+        function initialize() {
+            setLanguage('en');
+             // Set initial frame position
+            updateFramePosition(document.querySelector('.level-item[data-level="0"]'));
+        }
+
+        window.addEventListener('load', initialize);
+        window.addEventListener('resize', () => {
+             const activeLevel = document.querySelector('.level-item[style*="transform: translateY"]');
+             const targetLevel = activeLevel || document.querySelector('.level-item[data-level="0"]');
+             updateFramePosition(targetLevel);
+        });
+    </script>
+</body>
+</html>

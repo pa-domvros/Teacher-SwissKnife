@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+
+<html dir="ltr" lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Interactive Weekly Notebook — EL/EN (Print Only)</title>
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+<!-- Greek-capable font -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700;800;900&amp;subset=greek&amp;display=swap" rel="stylesheet"/>
+<style>
+    :root { --page-margin-mm: 12mm; }
+    html, body {
+      background-color: #f3f4f6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+      font-family: "Noto Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+    }
+    .printable-area { background-color: white; }
+    input, textarea, select, button { font-family: inherit; }
+
+    /* A4 print setup */
+    @page { size: A4; margin: var(--page-margin-mm); }
+
+    /* Page-break helpers */
+    .page { break-inside: avoid; page-break-inside: avoid; }
+    .page-break { break-before: page; page-break-before: always; }
+
+    /* Print rules */
+    @media print {
+      body * { visibility: hidden !important; }
+      .printable-area, .printable-area * { visibility: visible !important; }
+      .printable-area {
+        position: absolute; left: 0; top: 0;
+        width: calc(210mm - 2 * var(--page-margin-mm));
+        max-width: none !important; box-shadow: none !important;
+      }
+      .no-print { display: none !important; }
+      textarea, input[type="text"], input[type="time"] { border: 1px solid #cbd5e1 !important; background-color: #ffffff !important; }
+      textarea { overflow: visible !important; white-space: pre-wrap !important; }
+    }
+
+    textarea { white-space: pre-wrap; resize: vertical; }
+
+    /* Color accents */
+    .title-gradient {
+      background: linear-gradient(90deg, #0ea5e9, #10b981, #8b5cf6);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .btn { transition: transform 0.05s ease; }
+    .btn:active { transform: scale(0.98); }
+    .active-lang { outline: 2px solid rgba(0,0,0,0.15); box-shadow: 0 0 0 2px rgba(255,255,255,0.9) inset; }
+  
+html[lang="el"] h1, html[lang="el"] .title-gradient {
+  font-size: 90% !important;
+}
+
+
+html[lang="el"] h1.title-gradient { font-size: 90% !important; }
+
+h1.title-gradient { font-size: 90% !important; }
+</style>
+</head>
+<body>
+
+ &gt;
+
+  <!-- Toolbar -->
+<div class="no-print mx-auto mb-4 flex items-center justify-between gap-3" style="max-width: 1000px;">
+<div class="flex items-center gap-2">
+<button class="btn px-3 py-2 rounded-lg font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow" id="lang-el" type="button">Ελληνικά</button>
+<button class="btn px-3 py-2 rounded-lg font-bold bg-sky-600 hover:bg-sky-700 text-white shadow" id="lang-en" type="button">English</button>
+</div>
+<div class="flex items-center gap-2">
+<button class="btn bg-rose-500 hover:bg-rose-600 text-white font-bold py-2 px-4 rounded-lg shadow" data-i18n="clear" id="clear-btn" type="button">Clear</button>
+<button class="btn bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg shadow" data-i18n="print" id="print-btn" type="button">Print</button>
+</div>
+</div>
+<div class="printable-area mx-auto bg-white p-6 sm:p-8 rounded-2xl shadow-lg" id="notebook-content" style="max-width: 1000px;">
+<!-- Header -->
+<header class="flex flex-col sm:flex-row justify-between items-center mb-8 pb-4 border-b">
+<h1 class="text-3xl sm:text-4xl font-extrabold title-gradient" data-i18n="title">Digital Weekly Notebook</h1><div class="text-sm text-gray-500 italic mt-2 mb-4">Created: Panagiotis Domvros, English and Drama Educator</div>
+<div class="flex items-center mt-4 sm:mt-0">
+<label class="text-lg font-semibold text-fuchsia-700 mr-2" data-i18n="week_label" for="week-number">Week #:</label>
+<input class="w-28 p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition" id="week-number" type="text"/>
+</div>
+</header>
+<!-- Teaching Schedule Section -->
+<section class="mb-10 page">
+<h2 class="text-2xl font-extrabold text-sky-700 mb-4" data-i18n="teaching_schedule">Teaching Schedule</h2>
+<div class="overflow-x-auto rounded-lg border">
+<table class="w-full text-left border-collapse" id="teaching-schedule-table">
+<thead>
+<tr class="bg-sky-50">
+<th class="p-3 font-semibold text-sky-700" data-i18n="day">Day</th>
+<th class="p-3 font-semibold text-sky-700 text-center" data-i18n="period1">Period 1</th>
+<th class="p-3 font-semibold text-sky-700 text-center" data-i18n="period2">Period 2</th>
+<th class="p-3 font-semibold text-sky-700 text-center" data-i18n="period3">Period 3</th>
+<th class="p-3 font-semibold text-sky-700 text-center" data-i18n="period4">Period 4</th>
+<th class="p-3 font-semibold text-sky-700 text-center" data-i18n="period5">Period 5</th>
+<th class="p-3 font-semibold text-sky-700 text-center" data-i18n="period6">Period 6</th>
+<th class="p-3 font-semibold text-sky-700 text-center" data-i18n="period7">Period 7</th>
+</tr>
+</thead>
+<tbody><!-- Rows inserted by JS --></tbody>
+</table>
+</div>
+</section>
+<!-- Week at a Glance Section -->
+<section class="mb-10 page">
+<h2 class="text-2xl font-extrabold text-emerald-700 mb-4" data-i18n="week_glance">Week at a Glance</h2>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="glance-container"><!-- Inserted by JS --></div>
+</section>
+<!-- To-Do List Section -->
+<section class="mb-10 page">
+<h2 class="text-2xl font-extrabold text-indigo-700 mb-4" data-i18n="todo_lists">Daily To-Do Lists</h2>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8" id="todo-container"><!-- Inserted by JS --></div>
+</section>
+<!-- Notes Section -->
+<section class="mb-10 page">
+<h2 class="text-2xl font-extrabold text-fuchsia-700 mb-4" data-i18n="notes">Notes</h2>
+<textarea class="w-full min-h-[12rem] p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition" id="notes"></textarea>
+</section>
+<!-- Weekly Summary Section -->
+<section class="page">
+<h2 class="text-2xl font-extrabold text-rose-700 mb-4" data-i18n="weekly_summary">Weekly Summary</h2>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<div class="bg-green-50 p-4 rounded-lg border border-green-200">
+<h3 class="font-semibold text-green-800 mb-2" data-i18n="wins">Big Wins / What Went Well?</h3>
+<textarea class="todo-mi w-full min-h-[8rem] p-2 border rounded-md bg-white focus:ring-2 focus:ring-green-500 focus:outline-none transition"></textarea>
+</div>
+<div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+<h3 class="font-semibold text-yellow-800 mb-2" data-i18n="better">How Could It Be Better?</h3>
+<textarea class="todo-ai w-full min-h-[8rem] p-2 border rounded-md bg-white focus:ring-2 focus:ring-yellow-500 focus:outline-none transition"></textarea>
+</div>
+<div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+<h3 class="font-semibold text-blue-800 mb-2" data-i18n="schedule_not_work">What Didn't Work with Your Schedule?</h3>
+<textarea class="w-full min-h-[8rem] p-2 border rounded-md bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition"></textarea>
+</div>
+</div>
+</section>
+</div>
+<script>
+    // ---------- Data ----------
+    const LABELS = {
+      en: {
+        title: "Digital Weekly Notebook",
+        week_label: "Week #:",
+        teaching_schedule: "Teaching Schedule",
+        day: "Day",
+        period1: "Period 1",
+        period2: "Period 2",
+        period3: "Period 3",
+        period4: "Period 4",
+        period5: "Period 5",
+        period6: "Period 6",
+        period7: "Period 7",
+        week_glance: "Week at a Glance",
+        todo_lists: "Daily To-Do Lists",
+        notes: "Notes",
+        weekly_summary: "Weekly Summary",
+        wins: "Big Wins / What Went Well?",
+        better: "How Could It Be Better?",
+        schedule_not_work: "What Didn't Work with Your Schedule?",
+        most_important: "Most Important",
+        also_important: "Also Important",
+        plans_for: "Plans for",
+        class_subject: "Class/Subject",
+        mi_ph: "Top priority task...",
+        ai_ph: "Other tasks...",
+        notes_ph: "Weekly notes...",
+        clear: "Clear",
+        print: "Print",
+        days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+      },
+      el: {
+        title: "Ψηφιακό Εβδομαδιαίο Σημειωματάριο",
+        week_label: "Εβδομάδα #:",
+        teaching_schedule: "Ωρολόγιο Πρόγραμμα",
+        day: "Ημέρα",
+        period1: "Ώρα 1",
+        period2: "Ώρα 2",
+        period3: "Ώρα 3",
+        period4: "Ώρα 4",
+        period5: "Ώρα 5",
+        period6: "Ώρα 6",
+        period7: "Ώρα 7",
+        week_glance: "Η Εβδομάδα με Μια Ματιά",
+        todo_lists: "Καθημερινές Λίστες",
+        notes: "Σημειώσεις",
+        weekly_summary: "Εβδομαδιαία Ανασκόπηση",
+        wins: "Μεγάλες Επιτυχίες / Τι Πήγε Καλά;",
+        better: "Πώς Θα Μπορούσε να Είναι Καλύτερα;",
+        schedule_not_work: "Τι Δεν Δούλεψε στο Πρόγραμμά σου;",
+        most_important: "Πιο Σημαντικό",
+        also_important: "Επίσης Σημαντικά",
+        plans_for: "Σχέδια για",
+        class_subject: "Μάθημα/Τμήμα",
+        mi_ph: "Κύρια προτεραιότητα...",
+        ai_ph: "Άλλες εργασίες...",
+        notes_ph: "Σημειώσεις εβδομάδας...",
+        clear: "Καθαρισμός",
+        print: "Εκτύπωση",
+        days: ["Δευτέρα", "Τρίτη", "Τετάρτη", "Πέμπτη", "Παρασκευή"]
+      }
+    };
+
+    // ---------- Helpers ----------
+    function autoResizeTextarea(el) {
+      el.style.height = 'auto';
+      el.style.height = (el.scrollHeight + 2) + 'px';
+    }
+    function expandAllTextareas() {
+      document.querySelectorAll('textarea').forEach(el => {
+        autoResizeTextarea(el);
+        el.style.overflow = 'visible';
+      });
+    }
+    function setActiveLangButton(lang) {
+      document.getElementById("lang-el").classList.toggle("active-lang", lang === "el");
+      document.getElementById("lang-en").classList.toggle("active-lang", lang === "en");
+    }
+
+    // ---------- Build dynamic layout once ----------
+    document.addEventListener("DOMContentLoaded", function () {
+      const scheduleTbody  = document.querySelector("#teaching-schedule-table tbody");
+      const glanceContainer = document.getElementById("glance-container");
+      const todoContainer   = document.getElementById("todo-container");
+
+      // Build teaching schedule rows (5 days, 7 periods)
+      for (let i = 0; i < 5; i++) {
+        const row = document.createElement("tr");
+        row.className = "border-b hover:bg-sky-50";
+        const dayCell = document.createElement("td");
+        dayCell.className = "p-3 font-bold text-sky-900";
+        dayCell.setAttribute("data-day-idx", String(i));
+        dayCell.textContent = LABELS.en.days[i];
+        row.appendChild(dayCell);
+        for (let p = 0; p < 7; p++) {
+          const td = document.createElement("td");
+          td.className = "p-1 sm:p-2";
+          td.innerHTML = `<input type="text" class="w-full p-2 border rounded-md focus:ring-1 focus:ring-blue-400 focus:outline-none text-sm">`;
+          row.appendChild(td);
+        }
+        scheduleTbody.appendChild(row);
+      }
+
+      // Glance + To-do sections for 5 days
+      for (let i = 0; i < 5; i++) {
+        const dayEn = LABELS.en.days[i];
+
+        // Week-at-a-glance
+        const glance = document.createElement("div");
+        glance.innerHTML = `
+          <h3 class="font-extrabold text-emerald-800 mb-2" data-day-title="${i}">${dayEn}</h3>
+          <textarea class="glance-textarea w-full h-24 p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none transition" data-day="${dayEn}"></textarea>
+        `;
+        glanceContainer.appendChild(glance);
+
+        // To-do
+        const todo = document.createElement("div");
+        todo.className = "p-5 bg-indigo-50 rounded-xl border border-indigo-200";
+        todo.innerHTML = `
+          <h3 class="text-xl font-extrabold text-indigo-800 mb-4 text-center border-b pb-2" data-day-title="${i}">${dayEn.toUpperCase()}</h3>
+          <div class="space-y-4 mt-4">
+            <div>
+              <label class="mi-label block text-md font-semibold text-indigo-700 mb-1" data-i18n="most_important">${LABELS.en.most_important}</label>
+              <textarea class="todo-mi w-full h-28 p-2 border rounded-md focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"></textarea>
+            </div>
+            <div>
+              <label class="ai-label block text-md font-semibold text-teal-700 mb-1" data-i18n="also_important">${LABELS.en.also_important}</label>
+              <textarea class="todo-ai w-full h-28 p-2 border rounded-md focus:ring-2 focus:ring-teal-500 focus:outline-none transition"></textarea>
+            </div>
+          </div>
+        `;
+        todoContainer.appendChild(todo);
+      }
+
+      // Autosize listeners
+      document.querySelectorAll('textarea').forEach(t => {
+        autoResizeTextarea(t);
+        t.addEventListener('input', () => autoResizeTextarea(t));
+      });
+
+      // Print button
+      document.getElementById("print-btn").addEventListener("click", () => {
+        expandAllTextareas();
+        window.print();
+      });
+
+      // Clear
+      document.getElementById("clear-btn").addEventListener("click", () => {
+        const lang = localStorage.getItem("lang") || "en";
+        const conf = (lang === "el" ? "Καθαρισμός όλων των πεδίων;" : "Clear all entries?");
+        if (!confirm(conf)) return;
+        document.querySelectorAll('input[type="text"], input[type="time"], textarea').forEach(el => {
+          el.value = "";
+          if (el.tagName.toLowerCase() === "textarea") autoResizeTextarea(el);
+        });
+      });
+
+      // Language switch
+      const applyLanguage = (lang) => {
+        const t = LABELS[lang];
+        // Static labels
+        document.querySelectorAll("[data-i18n]").forEach(node => {
+          const key = node.getAttribute("data-i18n");
+          if (t[key]) node.textContent = t[key];
+        });
+        // Days
+        document.querySelectorAll("[data-day-idx]").forEach((cell, i) => cell.textContent = t.days[i]);
+        document.querySelectorAll("[data-day-title]").forEach((h3, i) => {
+          const d = t.days[i];
+          if (h3.closest("#todo-container")) h3.textContent = d.toUpperCase(); else h3.textContent = d;
+        });
+        // Placeholders
+        document.querySelectorAll('#teaching-schedule-table input[type="text"]').forEach(inp => inp.placeholder = t.class_subject);
+        document.querySelectorAll('.glance-textarea').forEach((ta, i) => {
+          const d = t.days[i];
+          ta.setAttribute("data-day", d);
+          ta.placeholder = `${t.plans_for} ${d}...`;
+        });
+        document.querySelectorAll('.todo-mi').forEach(ta => ta.placeholder = t.mi_ph);
+        document.querySelectorAll('.todo-ai').forEach(ta => ta.placeholder = t.ai_ph);
+        const notes = document.getElementById("notes");
+        if (notes) notes.placeholder = t.notes_ph;
+
+        // Save + UI state
+        localStorage.setItem("lang", lang);
+        document.documentElement.lang = (lang === "el" ? "el" : "en");
+        setActiveLangButton(lang);
+      };
+
+      document.getElementById("lang-el").addEventListener("click", () => applyLanguage("el"));
+      document.getElementById("lang-en").addEventListener("click", () => applyLanguage("en"));
+
+      // Init language
+      const saved = localStorage.getItem("lang") || "en";
+      applyLanguage(saved);
+
+      // Handle Ctrl/Cmd+P
+      if ('onbeforeprint' in window) window.onbeforeprint = expandAllTextareas;
+    });
+  </script>
+<footer class="mt-8 pt-4 border-t text-center text-sm text-gray-500">✨✍️ Devised by Panagiotis Domvros, English and Drama Teacher, All Rights Reserved ✍️✨</footer>
+</body>
+</html>

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pair Creator</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Updated to use the local team.png image file */
+            background-image: url('team.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            position: relative;
+        }
+
+        /* Overlay to ensure text readability on top of the image */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(240, 249, 255, 0.6); /* light blue with opacity */
+            z-index: -1;
+        }
+
+        /* Custom animation for cards appearing */
+        .card-effect {
+            animation: deal-in 0.5s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        @keyframes deal-in {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Simple toggle switch styles */
+        .toggle-switch-container {
+            width: 60px;
+            height: 34px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .toggle-switch-input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-switch-slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .toggle-switch-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch-input:checked + .toggle-switch-slider {
+            background-color: #3b82f6; /* Blue-500 */
+        }
+
+        .toggle-switch-input:checked + .toggle-switch-slider:before {
+            transform: translateX(26px);
+        }
+    </style>
+</head>
+<body class="text-slate-900 min-h-screen flex flex-col items-center justify-center p-4 md:p-8">
+
+    <!-- Main container with increased transparency -->
+    <div class="bg-white/20 backdrop-blur-lg shadow-2xl rounded-2xl p-6 md:p-10 max-w-2xl w-full">
+
+        <!-- Language Toggle -->
+        <div class="flex justify-end mb-6">
+            <div class="flex items-center space-x-2">
+                <span id="lang-el-label" class="font-semibold text-gray-600">Ελληνικά</span>
+                <label class="toggle-switch-container">
+                    <input type="checkbox" id="language-toggle" class="toggle-switch-input">
+                    <span class="toggle-switch-slider"></span>
+                </label>
+                <span id="lang-en-label" class="font-semibold text-blue-600">English</span>
+            </div>
+        </div>
+
+        <h1 id="app-title" class="text-4xl md:text-5xl font-extrabold text-center text-slate-800 mb-8 drop-shadow-md">
+            Pair Creator
+        </h1>
+
+        <!-- Input area -->
+        <div class="flex flex-col items-center gap-6 mb-8">
+            <div class="w-full">
+                <label id="names-label" for="names" class="text-lg font-semibold mb-2 text-slate-700 block">Enter names (one per line):</label>
+                <textarea id="names" rows="10" placeholder="e.g.&#10;Alice&#10;Bob&#10;Charlie&#10;Diana" class="w-full p-4 border border-blue-300 rounded-lg focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all text-slate-700 resize-y bg-white/50"></textarea>
+            </div>
+            <button id="create-pairs-btn" class="w-full md:w-auto px-8 py-4 bg-gradient-to-r from-sky-500 to-indigo-600 text-white font-bold text-lg rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+                Create Pairs
+            </button>
+        </div>
+
+        <!-- Results area -->
+        <div id="results" class="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Pair divs will be dynamically inserted here -->
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-8 text-center text-slate-800 font-medium">
+        <p id="footer-text">✨✍️ Devised by Panagiotis Domvros, English and Drama Teacher, All Rights Reserved ✍️✨</p>
+    </footer>
+
+    <script>
+        const namesTextarea = document.getElementById('names');
+        const createPairsBtn = document.getElementById('create-pairs-btn');
+        const resultsDiv = document.getElementById('results');
+        const languageToggle = document.getElementById('language-toggle');
+
+        // Translations for English and Greek
+        const translations = {
+            en: {
+                title: "Pair Creator",
+                namesLabel: "Enter names (one per line):",
+                namesPlaceholder: "e.g.\nAlice\nBob\nCharlie\nDiana",
+                createBtn: "Create Pairs",
+                groupTitle: "Group",
+                trioTitle: "Trio",
+                footer: "✨✍️ Devised by Panagiotis Domvros, English and Drama Teacher, All Rights Reserved ✍️✨",
+                errorNames: "Please enter some names to create pairs.",
+            },
+            el: {
+                title: "Δημιουργός Ζευγαριών",
+                namesLabel: "Εισαγωγή ονομάτων (ένα ανά γραμμή):",
+                namesPlaceholder: "π.χ.\nΕλένη\nΓιώργος\nΜαρία\nΠαναγιώτης",
+                createBtn: "Δημιουργία Ζευγαριών",
+                groupTitle: "Ομάδα",
+                trioTitle: "Τριάδα",
+                footer: "✨✍️ Σχεδιασμός: Παναγιώτης Δόμβρος, Εκπαιδευτικό Αγγλικών - Θεατρολόγος, Με την επιφύλαξη παντός δικαιώματος ✍️✨",
+                errorNames: "Παρακαλώ εισάγετε ονόματα για να δημιουργήσετε ζευγάρια.",
+            }
+        };
+
+        let currentLang = 'en';
+
+        // Function to update UI text based on the selected language
+        function updateLanguage() {
+            const lang = languageToggle.checked ? 'el' : 'en';
+            currentLang = lang;
+            const t = translations[lang];
+
+            // Update all text elements
+            document.getElementById('app-title').textContent = t.title;
+            document.getElementById('names-label').textContent = t.namesLabel;
+            namesTextarea.placeholder = t.namesPlaceholder;
+            createPairsBtn.textContent = t.createBtn;
+            document.getElementById('footer-text').innerHTML = t.footer;
+            
+            // Update toggle labels style
+            document.getElementById('lang-en-label').classList.toggle('text-blue-600', lang === 'en');
+            document.getElementById('lang-en-label').classList.toggle('text-gray-600', lang === 'el');
+            document.getElementById('lang-el-label').classList.toggle('text-blue-600', lang === 'el');
+            document.getElementById('lang-el-label').classList.toggle('text-gray-600', lang === 'en');
+        }
+
+        // Add event listener for the language toggle switch
+        languageToggle.addEventListener('change', updateLanguage);
+        // Set the initial language on page load
+        updateLanguage();
+
+        // Function to shuffle an array randomly (Fisher-Yates algorithm)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+            }
+        }
+
+        // Function to display a message (e.g., an error) in the results area
+        function showMessage(message) {
+            resultsDiv.innerHTML = `
+                <div class="md:col-span-2 lg:col-span-3 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative">
+                    <span class="block sm:inline">${message}</span>
+                </div>
+            `;
+        }
+
+        // Event listener for the "Create Pairs" button
+        createPairsBtn.addEventListener('click', () => {
+            // Get names, trim whitespace, and filter out empty lines
+            const names = namesTextarea.value.trim().split('\n').filter(name => name.trim() !== '');
+
+            // --- Input Validation ---
+            if (names.length < 2) {
+                showMessage(translations[currentLang].errorNames);
+                return;
+            }
+
+            // Shuffle the names to ensure random pairing
+            shuffleArray(names);
+
+            // Create groups
+            const groups = [];
+            let i = 0;
+            while (i < names.length) {
+                // If there are 3 people left, make a trio
+                if (names.length - i === 3) {
+                    groups.push([names[i], names[i+1], names[i+2]]);
+                    i += 3;
+                } 
+                // If there are 2 or more people left, make a pair
+                else if (names.length - i >= 2) {
+                    groups.push([names[i], names[i+1]]);
+                    i += 2;
+                } 
+                // If there is only 1 person left (shouldn't happen with the trio logic, but as a fallback)
+                else {
+                    groups.push([names[i]]);
+                    i += 1;
+                }
+            }
+
+
+            // Clear previous results
+            resultsDiv.innerHTML = '';
+
+            // --- Display the results with an animation ---
+            groups.forEach((group, index) => {
+                // Create the main container for the group card
+                const groupDiv = document.createElement('div');
+                groupDiv.classList.add(
+                    'p-6', 'rounded-xl', 'shadow-md', 'border', 'border-blue-200', 'bg-white/40'
+                );
+                // Apply a staggered animation delay
+                groupDiv.style.animationDelay = `${index * 100}ms`;
+                groupDiv.classList.add('card-effect');
+
+
+                // Create the title for the group
+                const groupTitle = document.createElement('h2');
+                const titleText = group.length === 3 ? translations[currentLang].trioTitle : translations[currentLang].groupTitle;
+                groupTitle.textContent = `${titleText} ${index + 1}`;
+                groupTitle.classList.add(
+                    'text-2xl', 'font-bold', 'mb-4', 'text-slate-800'
+                );
+                groupDiv.appendChild(groupTitle);
+
+                // Add each person in the group to the card
+                group.forEach(studentName => {
+                    const studentDiv = document.createElement('div');
+                    studentDiv.textContent = studentName;
+                    studentDiv.classList.add(
+                        'p-3', 'bg-white/80', 'rounded-lg', 'shadow-sm', 'text-slate-700', 'font-medium',
+                        'mb-2', 'border', 'border-gray-200'
+                    );
+                    groupDiv.appendChild(studentDiv);
+                });
+
+                resultsDiv.appendChild(groupDiv);
+            });
+        });
+    </script>
+
+</body>
+</html>

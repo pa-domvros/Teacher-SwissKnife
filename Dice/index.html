@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Draft Roll</title>
+    <style>
+        /* ==========================================================================
+           Main Setup & Background
+           ========================================================================== */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            background-color: #000; /* Solid black background */
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* ==========================================================================
+           Content Container
+           ========================================================================== */
+        .container {
+            background-color: rgba(20, 20, 20, 0.75);
+            padding: 2em;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 90%;
+            width: 420px;
+            border: 3px solid rgba(0, 183, 255, 0.9);
+            box-shadow: 0 0 35px rgba(0, 183, 255, 0.5);
+            position: relative; /* Needed for positioning the language toggle */
+        }
+
+        /* ==========================================================================
+           Language Toggle
+           ========================================================================== */
+        #lang-toggle {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 0.9em;
+            color: #aaa;
+        }
+
+        .lang-option {
+            cursor: pointer;
+            padding: 5px;
+            transition: color 0.3s ease;
+        }
+
+        .lang-option:hover {
+            color: #fff;
+        }
+
+        .lang-option.active {
+            color: #00B7FF;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+
+        /* ==========================================================================
+           Typography (Headers, Text, Footer)
+           ========================================================================== */
+        header, footer {
+            text-shadow: 0 0 5px rgba(0,0,0,0.5);
+        }
+
+        h1 { 
+            font-size: 2.5em; 
+            color: #00B7FF;
+            margin-bottom: 0.5em; 
+            margin-top: 0.5em;
+            font-weight: 600;
+        }
+
+        p.instructions {
+            line-height: 1.5;
+        }
+
+        footer { 
+            margin-top: 2em; 
+            font-size: 0.8em; 
+            opacity: 0.7; 
+            line-height: 1.4;
+        }
+
+        /* ==========================================================================
+           The Interactive Dice Elements
+           ========================================================================== */
+        #dice-container { 
+            padding: 2em 0; 
+            display: flex;
+            justify-content: center;
+        }
+
+        #dice-face {
+            width: 120px;
+            height: 120px;
+            cursor: pointer;
+            transition: transform 0.2s ease-out;
+        }
+
+        #dice-face:hover {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        #dice-image {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* ==========================================================================
+           Result Text & Animation
+           ========================================================================== */
+        #roll-result { 
+            font-size: 1.2em; 
+            font-style: italic;
+            min-height: 1.5em;
+        }
+
+        .rolling {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+          10%, 90% { transform: translate3d(-1px, 0, 0); }
+          20%, 80% { transform: translate3d(2px, 0, 0); }
+          30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+          40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="lang-toggle">
+            <span class="lang-option active" data-lang="en">EN</span> |
+            <span class="lang-option" data-lang="el">GR</span>
+        </div>
+        <header>
+            <h1 data-key="title">The Draft Roll</h1>
+        </header>
+        <main>
+            <p class="instructions" data-key="instructions">Each team representative, tap the die to determine your draft order. Highest roll picks first.</p>
+            <div id="dice-container">
+                <div id="dice-face">
+                    <img id="dice-image" src="dice-question.png" alt="Click to roll the die">
+                </div>
+            </div>
+            <p id="roll-result" data-key="initialResult">Your fate awaits...</p>
+        </main>
+        <footer>
+            <p data-key="footer1">Created by Panagiotis Domvros 2025 (CC BY-NC)</p>
+            <p data-key="footer2">Principal of 1st Middle School of Pylea</p>
+        </footer>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- ELEMENTS ---
+            const diceFace = document.getElementById('dice-face');
+            const diceImage = document.getElementById('dice-image');
+            const rollResult = document.getElementById('roll-result');
+            
+            // --- STATE ---
+            let isRolling = false;
+            let currentLang = 'en';
+
+            // --- IMAGE ASSETS (Using local files) ---
+            const diceImages = [
+                'dice1.png',
+                'dice2.png',
+                'dice3.png',
+                'dice4.png',
+                'dice5.png',
+                'dice6.png'
+            ];
+            const defaultImage = 'dice-question.png';
+
+            // --- TRANSLATIONS ---
+            const translations = {
+                en: {
+                    title: 'The Draft Roll',
+                    instructions: 'Each team representative, tap the die to determine your draft order. Highest roll picks first.',
+                    initialResult: 'Your fate awaits...',
+                    rolling: 'Rolling...',
+                    rollResult: 'You rolled a {roll}!',
+                    footer1: 'Created by Panagiotis Domvros 2025 (CC BY-NC)',
+                    footer2: 'Principal of 1st Middle School of Pylea',
+                    altText: 'Click to roll the die'
+                },
+                el: {
+                    title: '<i>Ρίξε το ζάρι</i>',
+                    instructions: 'Κάθε εκπρόσωπος της ομάδας, πατήστε το ζάρι για να καθοριστεί η σειρά επιλογής σας. Η υψηλότερη ζαριά επιλέγει πρώτη.',
+                    initialResult: 'Η μοίρα σου σε περιμένει...',
+                    rolling: 'Ρίχνει...',
+                    rollResult: 'Έφερες {roll}!',
+                    footer1: 'Δημιουργός Παναγιώτης Δόμβρος 2025 (CC BY-NC)',
+                    footer2: 'Διευθυντής 1ου Γυμνασίου Πυλαίας',
+                    altText: 'Κάντε κλικ για να ρίξετε το ζάρι'
+                }
+            };
+
+            // --- FUNCTIONS ---
+
+            /**
+             * Sets the language of the UI elements
+             * @param {string} lang - The language to switch to ('en' or 'el')
+             */
+            const setLanguage = (lang) => {
+                if (!translations[lang]) return;
+                currentLang = lang;
+                document.documentElement.lang = lang;
+
+                // Update toggle active state
+                document.querySelectorAll('.lang-option').forEach(span => {
+                    span.classList.toggle('active', span.dataset.lang === lang);
+                });
+
+                // Translate all elements with a data-key attribute
+                document.querySelectorAll('[data-key]').forEach(element => {
+                    const key = element.dataset.key;
+                    if (translations[lang][key]) {
+                        // Use innerHTML to allow for the italic tag in the Greek title
+                        element.innerHTML = translations[lang][key];
+                    }
+                });
+                
+                // Update the image alt text specifically
+                diceImage.alt = translations[lang].altText;
+            };
+
+            /**
+             * Handles the dice roll logic and animation
+             */
+            const rollTheDice = () => {
+                if (isRolling) return;
+                isRolling = true;
+
+                diceFace.classList.add('rolling');
+                diceImage.src = defaultImage;
+                rollResult.textContent = translations[currentLang].rolling;
+
+                setTimeout(() => {
+                    const roll = Math.floor(Math.random() * 6);
+                    diceImage.src = diceImages[roll];
+                    
+                    // Use the translated string for the result
+                    rollResult.textContent = translations[currentLang].rollResult.replace('{roll}', roll + 1);
+
+                    diceFace.classList.remove('rolling');
+                    isRolling = false;
+                }, 600); // Animation is 0.5s, so 600ms is a safe delay
+            };
+
+            // --- EVENT LISTENERS ---
+
+            // Listen for clicks on the dice
+            diceFace.addEventListener('click', rollTheDice);
+
+            // Listen for clicks on the language toggle options
+            document.querySelectorAll('.lang-option').forEach(span => {
+                span.addEventListener('click', (e) => {
+                    // Check if the initial text is displayed before switching language
+                    const initialText = translations[currentLang].initialResult;
+                    const isInitialState = rollResult.innerHTML === initialText;
+                    
+                    setLanguage(e.target.dataset.lang);
+
+                    // If it was the initial text, update it to the new language's initial text
+                    if(isInitialState) {
+                        rollResult.innerHTML = translations[currentLang].initialResult;
+                    }
+                });
+            });
+
+            // --- INITIALIZATION ---
+            setLanguage('en'); // Set default language on load
+            diceImage.src = defaultImage; // Set default image on load
+
+        });
+    </script>
+</body>
+</html>

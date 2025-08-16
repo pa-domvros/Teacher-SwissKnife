@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weekly Lesson Plan — EL/EN (Print Only, No Placeholders)</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Greek-capable font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700;800;900&subset=greek&display=swap" rel="stylesheet">
+
+  <style>
+    :root { --page-margin-mm: 12mm; }
+    html, body {
+      background-color: #f3f4f6;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      print-color-adjust: exact;
+      -webkit-print-color-adjust: exact;
+      font-family: "Noto Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Color Emoji", "Apple Color Emoji", "Segoe UI Emoji", sans-serif;
+    }
+    .printable-area { background-color: white; }
+    input, textarea, select, button { font-family: inherit; }
+
+    /* A4 print setup */
+    @page { size: A4; margin: var(--page-margin-mm); }
+
+    /* Page-break helpers */
+    .page { break-inside: avoid; page-break-inside: avoid; }
+    .page-break { break-before: page; page-break-before: always; }
+
+    /* Print rules */
+    @media print {
+      body * { visibility: hidden !important; }
+      .printable-area, .printable-area * { visibility: visible !important; }
+      .printable-area {
+        position: absolute; left: 0; top: 0;
+        width: calc(210mm - 2 * var(--page-margin-mm));
+        max-width: none !important; box-shadow: none !important;
+      }
+      .no-print { display: none !important; }
+      textarea, input[type="text"], input[type="time"], input[type="date"] {
+        border: 1px solid #cbd5e1 !important; background-color: #ffffff !important;
+      }
+      textarea { overflow: visible !important; white-space: pre-wrap !important; }
+    }
+
+    textarea { white-space: pre-wrap; resize: vertical; }
+
+    /* Color accents */
+    .title-gradient {
+      background: linear-gradient(90deg, #0ea5e9, #10b981, #8b5cf6);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .btn { transition: transform 0.05s ease; }
+    .btn:active { transform: scale(0.98); }
+    .active-lang { outline: 2px solid rgba(0,0,0,0.15); box-shadow: 0 0 0 2px rgba(255,255,255,0.9) inset; }
+    .section-card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1rem; }
+    .label-chip { font-weight: 700; padding: 0.1rem 0.5rem; border-radius: 0.5rem; }
+  </style>
+</head>
+<body class="bg-gray-100 p-4 sm:p-6 lg:p-8">
+
+  <!-- Toolbar -->
+  <div class="no-print mx-auto mb-4 flex items-center justify-between gap-3" style="max-width: 1000px;">
+    <div class="flex items-center gap-2">
+      <button id="lang-el" type="button" class="btn px-3 py-2 rounded-lg font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow">Ελληνικά</button>
+      <button id="lang-en" type="button" class="btn px-3 py-2 rounded-lg font-bold bg-sky-600 hover:bg-sky-700 text-white shadow">English</button>
+    </div>
+    <div class="flex items-center gap-2">
+      <button id="clear-btn" type="button" class="btn bg-rose-500 hover:bg-rose-600 text-white font-bold py-2 px-4 rounded-lg shadow" data-i18n="clear">Clear</button>
+      <button id="print-btn" type="button" class="btn bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 px-4 rounded-lg shadow" data-i18n="print">Print</button>
+    </div>
+  </div>
+
+  <div id="sheet" class="printable-area mx-auto bg-white p-6 sm:p-8 rounded-2xl shadow-lg" style="max-width: 1000px;">
+    <!-- Header -->
+    <div class="text-sm text-gray-500 italic mb-4" data-i18n="credit">Created: Panagiotis Domvros, English and Drama Educator</div>
+<header class="mb-8 pb-4 border-b">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+        <div>
+          <h1 class="text-3xl sm:text-4xl font-extrabold title-gradient" data-i18n="title">Weekly Lesson Plan</h1>
+          <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 items-center">
+            <div class="flex items-center gap-2">
+              <span class="label-chip bg-sky-100 text-sky-800" data-i18n="course">Course</span>
+              <input type="text" class="p-2 border rounded-lg w-56">
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="label-chip bg-emerald-100 text-emerald-800" data-i18n="teacher">Teacher</span>
+              <input type="text" class="p-2 border rounded-lg w-56">
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="label-chip bg-fuchsia-100 text-fuchsia-800" data-i18n="week">Week</span>
+              <input type="text" class="p-2 border rounded-lg w-40">
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="label-chip bg-indigo-100 text-indigo-800" data-i18n="term">Term</span>
+              <input type="text" class="p-2 border rounded-lg w-40">
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="label-chip bg-amber-100 text-amber-800" data-i18n="date_range">Date Range</span>
+              <input type="date" class="p-2 border rounded-lg"> <span class="px-1">—</span> <input type="date" class="p-2 border rounded-lg">
+            </div>
+          </div>
+        </div>
+        <div class="text-right">
+          <div class="text-sm text-gray-500" data-i18n="print_hint">Use “Print” for a clean multi‑page PDF.</div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Weekly Overview -->
+    <section class="mb-8 page">
+      <h2 class="text-2xl font-extrabold text-sky-700 mb-3" data-i18n="weekly_overview">Weekly Overview</h2>
+      <div class="section-card">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div>
+            <div class="font-bold text-emerald-700 mb-1" data-i18n="standards">Standards / Objectives</div>
+            <textarea class="w-full min-h-[8rem] p-2 border rounded-md"></textarea>
+          </div>
+          <div>
+            <div class="font-bold text-indigo-700 mb-1" data-i18n="materials">Materials / Resources</div>
+            <textarea class="w-full min-h-[8rem] p-2 border rounded-md"></textarea>
+          </div>
+          <div>
+            <div class="font-bold text-fuchsia-700 mb-1" data-i18n="assessment">Assessment / Checks for Understanding</div>
+            <textarea class="w-full min-h-[8rem] p-2 border rounded-md"></textarea>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Daily Plans -->
+    <section class="mb-6 page">
+      <h2 class="text-2xl font-extrabold text-emerald-700 mb-3" data-i18n="daily_plans">Daily Plans</h2>
+      <div id="days-container" class="grid grid-cols-1 gap-6"><!-- Filled by JS --></div>
+    </section>
+
+    <!-- Notes -->
+    <section class="page">
+      <h2 class="text-2xl font-extrabold text-rose-700 mb-3" data-i18n="additional_notes">Additional Notes</h2>
+      <textarea class="w-full min-h-[10rem] p-2 border rounded-md"></textarea>
+    </section>
+  <footer class="mt-8 pt-4 border-t text-center text-sm text-gray-500">✨✍️ Devised by Panagiotis Domvros, English and Drama Teacher, All Rights Reserved ✍️✨</footer>
+  </div>
+
+  <script>
+    // ---------- Data ----------
+    const LABELS = {
+      en: {
+        title: "Weekly Lesson Plan",
+        course: "Course",
+        teacher: "Teacher",
+        week: "Week",
+        term: "Term",
+        date_range: "Date Range",
+        print_hint: "Use “Print” for a clean multi‑page PDF.",
+        weekly_overview: "Weekly Overview",
+        standards: "Standards / Objectives",
+        materials: "Materials / Resources",
+        assessment: "Assessment / Checks for Understanding",
+        daily_plans: "Daily Plans",
+        additional_notes: "Additional Notes",
+        clear: "Clear",
+        print: "Print",
+        days: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+        parts: {
+          objective: "Objective",
+          warmup: "Warm‑Up / Bell Ringer",
+          instruction: "Instruction / Activities",
+          differentiation: "Differentiation / Supports",
+          homework: "Homework",
+          exit: "Exit Ticket / Reflection"
+        }
+      },
+      el: {
+        title: "Εβδομαδιαίο Πλάνο Μαθημάτων",
+        course: "Μάθημα",
+        teacher: "Εκπαιδευτικός",
+        week: "Εβδομάδα",
+        term: "Τετράμηνο",
+        date_range: "Ημερομηνίες",
+        print_hint: "Χρησιμοποιήστε «Εκτύπωση» για καθαρό PDF πολλαπλών σελίδων.",
+        weekly_overview: "Εβδομαδιαία Επισκόπηση",
+        standards: "Στόχοι / Προσδοκώμενα Μαθησιακά Αποτελέσματα",
+        materials: "Υλικό / Πηγές",
+        assessment: "Αξιολόγηση / Έλεγχος Κατανόησης",
+        daily_plans: "Ημερήσια Πλάνα",
+        additional_notes: "Πρόσθετες Σημειώσεις",
+        clear: "Καθαρισμός",
+        print: "Εκτύπωση",
+        days: ["Δευτέρα", "Τρίτη", "Τετάρτη", "Πέμπτη", "Παρασκευή"],
+        parts: {
+          objective: "Στόχος",
+          warmup: "Προθέρμανση / Εναρκτήριο",
+          instruction: "Διδασκαλία / Δραστηριότητες",
+          differentiation: "Διαφοροποίηση / Υποστήριξη",
+          homework: "Εργασία για το σπίτι",
+          exit: "Κλείσιμο / Αναστοχασμός"
+        }
+      }
+    };
+
+    // ---------- Helpers ----------
+    function autoResizeTextarea(el) {
+      el.style.height = 'auto';
+      el.style.height = (el.scrollHeight + 2) + 'px';
+    }
+    function expandAllTextareas() {
+      document.querySelectorAll('textarea').forEach(el => {
+        autoResizeTextarea(el);
+        el.style.overflow = 'visible';
+      });
+    }
+    function setActiveLangButton(lang) {
+      document.getElementById("lang-el").classList.toggle("active-lang", lang === "el");
+      document.getElementById("lang-en").classList.toggle("active-lang", lang === "en");
+    }
+
+    // Create day card
+    function createDayCard(dayName) {
+      const wrap = document.createElement("div");
+      wrap.className = "section-card";
+      wrap.innerHTML = `
+        <h3 class="text-xl font-extrabold text-indigo-800 mb-2" data-day-title>${dayName}</h3>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div>
+            <div class="font-bold text-emerald-700 mb-1" data-i18n-part="objective">Objective</div>
+            <textarea class="w-full min-h-[6rem] p-2 border rounded-md"></textarea>
+          </div>
+          <div>
+            <div class="font-bold text-amber-700 mb-1" data-i18n-part="warmup">Warm‑Up / Bell Ringer</div>
+            <textarea class="w-full min-h-[6rem] p-2 border rounded-md"></textarea>
+          </div>
+          <div class="lg:col-span-2">
+            <div class="font-bold text-sky-700 mb-1" data-i18n-part="instruction">Instruction / Activities</div>
+            <textarea class="w-full min-h-[8rem] p-2 border rounded-md"></textarea>
+          </div>
+          <div>
+            <div class="font-bold text-fuchsia-700 mb-1" data-i18n-part="differentiation">Differentiation / Supports</div>
+            <textarea class="w-full min-h-[6rem] p-2 border rounded-md"></textarea>
+          </div>
+          <div>
+            <div class="font-bold text-rose-700 mb-1" data-i18n-part="homework">Homework</div>
+            <textarea class="w-full min-h-[6rem] p-2 border rounded-md"></textarea>
+          </div>
+          <div class="lg:col-span-2">
+            <div class="font-bold text-blue-800 mb-1" data-i18n-part="exit">Exit Ticket / Reflection</div>
+            <textarea class="w-full min-h-[6rem] p-2 border rounded-md"></textarea>
+          </div>
+        </div>
+      `;
+      return wrap;
+    }
+
+    // Apply language
+    function applyLanguage(lang) {
+      const t = LABELS[lang] || LABELS.en;
+      // Static labels
+      document.querySelectorAll("[data-i18n]").forEach(node => {
+        const key = node.getAttribute("data-i18n");
+        if (t[key]) node.textContent = t[key];
+      });
+      // Day titles
+      document.querySelectorAll("[data-day-title]").forEach((h3, i) => {
+        h3.textContent = t.days[i % t.days.length];
+      });
+      // Part labels inside day cards
+      document.querySelectorAll("[data-i18n-part]").forEach(node => {
+        const key = node.getAttribute("data-i18n-part");
+        node.textContent = t.parts[key] || node.textContent;
+      });
+      // Save + UI state
+      localStorage.setItem("lang", lang);
+      document.documentElement.lang = (lang === "el" ? "el" : "en");
+      setActiveLangButton(lang);
+    }
+
+    // ---------- Build ----------
+    document.addEventListener("DOMContentLoaded", function () {
+      const daysContainer = document.getElementById("days-container");
+      // Build 5 day cards (use EN names initially; applyLanguage will update)
+      LABELS.en.days.forEach(day => daysContainer.appendChild(createDayCard(day)));
+
+      // Autosize
+      document.querySelectorAll('textarea').forEach(t => {
+        autoResizeTextarea(t);
+        t.addEventListener('input', () => autoResizeTextarea(t));
+      });
+
+      // Buttons
+      document.getElementById("print-btn").addEventListener("click", () => {
+        expandAllTextareas();
+        window.print();
+      });
+      document.getElementById("clear-btn").addEventListener("click", () => {
+        const lang = localStorage.getItem("lang") || "en";
+        const conf = (lang === "el" ? "Καθαρισμός όλων των πεδίων;" : "Clear all entries?");
+        if (!confirm(conf)) return;
+        document.querySelectorAll('input[type="text"], input[type="time"], input[type="date"], textarea').forEach(el => {
+          el.value = "";
+          if (el.tagName.toLowerCase() === "textarea") autoResizeTextarea(el);
+        });
+      });
+
+      // Language toggles
+      document.getElementById("lang-el").addEventListener("click", () => applyLanguage("el"));
+      document.getElementById("lang-en").addEventListener("click", () => applyLanguage("en"));
+
+      // Init language
+      const saved = localStorage.getItem("lang") || "en";
+      applyLanguage(saved);
+
+      // Expand before Ctrl/Cmd+P
+      if ('onbeforeprint' in window) window.onbeforeprint = expandAllTextareas;
+    });
+  </script>
+</body>
+</html>

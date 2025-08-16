@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Grouping App</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <style>
+        :root {
+            --primary-bg-light: #e0f2fe; /* light-blue-100 */
+            --primary-bg-dark: #7dd3fc; /* sky-400 */
+            --secondary-bg: #fff;
+            --primary-text: #0f172a; /* slate-900 */
+            --accent-color: #f87171; /* red-400 */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--primary-bg-light), var(--primary-bg-dark));
+            background-attachment: fixed;
+        }
+
+        /* Custom scrollbar for text area */
+        textarea::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        textarea::-webkit-scrollbar-thumb {
+            background-color: var(--primary-bg-dark);
+            border-radius: 4px;
+        }
+
+        textarea::-webkit-scrollbar-track {
+            background-color: #e2e8f0;
+        }
+
+        .card-effect {
+            animation: deal-in 0.5s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        @keyframes deal-in {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .toggle-switch-container {
+            width: 60px;
+            height: 34px;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .toggle-switch-input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-switch-slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .toggle-switch-slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        .toggle-switch-input:checked + .toggle-switch-slider {
+            background-color: #2196F3;
+        }
+
+        .toggle-switch-input:checked + .toggle-switch-slider:before {
+            transform: translateX(26px);
+        }
+
+        .toggle-label {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-weight: bold;
+            color: white;
+            transition: all 0.4s;
+            pointer-events: none;
+        }
+
+        #lang-en {
+            left: 65px;
+        }
+
+        #lang-el {
+            right: 65px;
+        }
+
+        .toggle-switch-input:checked ~ #lang-en {
+            color: #ccc;
+        }
+
+        .toggle-switch-input:checked ~ #lang-el {
+            color: white;
+        }
+
+        .toggle-switch-input:not(:checked) ~ #lang-en {
+            color: white;
+        }
+
+        .toggle-switch-input:not(:checked) ~ #lang-el {
+            color: #ccc;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-slate-900 min-h-screen flex flex-col items-center p-4 md:p-8">
+
+    <!-- Main container -->
+    <div class="bg-white shadow-2xl rounded-2xl p-6 md:p-10 max-w-4xl w-full">
+
+        <!-- Language Toggle -->
+        <div class="flex justify-end mb-6">
+            <div class="flex items-center space-x-2">
+                <span id="lang-el" class="font-bold text-gray-500 transition-colors duration-300">Ελληνικά</span>
+                <label class="toggle-switch-container">
+                    <input type="checkbox" id="language-toggle" class="toggle-switch-input">
+                    <span class="toggle-switch-slider"></span>
+                </label>
+                <span id="lang-en" class="font-bold text-blue-500 transition-colors duration-300">English</span>
+            </div>
+        </div>
+
+        <h1 id="app-title" class="text-4xl md:text-5xl font-extrabold text-center text-slate-800 mb-6 drop-shadow-md">
+            Student Grouping
+        </h1>
+
+        <!-- Input area -->
+        <div class="grid md:grid-cols-2 gap-8 mb-8">
+            <div class="flex flex-col">
+                <label id="names-label" for="names" class="text-lg font-semibold mb-2 text-slate-700">Enter names (one per line):</label>
+                <textarea id="names" rows="10" placeholder="e.g.&#10;Alice&#10;Bob&#10;Charlie&#10;Diana" class="w-full p-4 border border-blue-300 rounded-lg focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all text-slate-700 resize-none"></textarea>
+            </div>
+            <div class="flex flex-col">
+                <label id="teams-label" for="numTeams" class="text-lg font-semibold mb-2 text-slate-700">Number of teams:</label>
+                <input type="number" id="numTeams" min="1" value="2" class="w-full p-4 border border-blue-300 rounded-lg text-center text-xl font-bold focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all text-slate-700">
+                <button id="create-teams-btn" class="mt-6 px-6 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold text-lg rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+                    Create Teams
+                </button>
+            </div>
+        </div>
+
+        <!-- Results area -->
+        <div id="results" class="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Team divs will be dynamically inserted here -->
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-8 text-center text-slate-600 font-medium">
+        <p>✨✍️ <span id="footer-text">Devised by Panagiotis Domvros, English and Drama Teacher, All Rights Reserved</span> ✍️✨</p>
+    </footer>
+
+    <script>
+        const namesTextarea = document.getElementById('names');
+        const numTeamsInput = document.getElementById('numTeams');
+        const createTeamsBtn = document.getElementById('create-teams-btn');
+        const resultsDiv = document.getElementById('results');
+        const languageToggle = document.getElementById('language-toggle');
+
+        const translations = {
+            en: {
+                title: "Student Grouping",
+                namesLabel: "Enter names (one per line):",
+                namesPlaceholder: "e.g.\nAlice\nBob\nCharlie\nDiana",
+                teamsLabel: "Number of teams:",
+                createBtn: "Create Teams",
+                teamTitle: "Team",
+                footer: "Devised by Panagiotis Domvros, English and Drama Teacher, All Rights Reserved",
+                errorNames: "Please enter some student names.",
+                errorTeams: "Please enter a valid number of teams (1 or more).",
+                errorGroups: "The number of teams cannot be more than the number of students.",
+            },
+            el: {
+                title: "Δημιουργία Ομάδων",
+                namesLabel: "Εισαγωγή ονομάτων (ένα ανά γραμμή):",
+                namesPlaceholder: "π.χ.\nΕλένη\nΓιώργος\nΜαρία\nΠαναγιώτης",
+                teamsLabel: "Αριθμός ομάδων:",
+                createBtn: "Δημιουργία Ομάδων",
+                teamTitle: "Ομάδα",
+                footer: "✨✍️ Σχεδιάστηκε από τον Παναγιώτη Δόμβρο, Καθηγητή Αγγλικών και Δράματος, Με την επιφύλαξη παντός δικαιώματος ✍️✨",
+                errorNames: "Παρακαλώ εισάγετε ονόματα μαθητών.",
+                errorTeams: "Παρακαλώ εισάγετε έναν έγκυρο αριθμό ομάδων (1 ή περισσότερες).",
+                errorGroups: "Ο αριθμός των ομάδων δεν μπορεί να είναι μεγαλύτερος από τον αριθμό των μαθητών.",
+            }
+        };
+
+        let currentLang = 'en';
+
+        // Function to update UI based on selected language
+        function updateLanguage() {
+            const lang = languageToggle.checked ? 'el' : 'en';
+            currentLang = lang;
+            const t = translations[lang];
+
+            document.getElementById('app-title').textContent = t.title;
+            document.getElementById('names-label').textContent = t.namesLabel;
+            namesTextarea.placeholder = t.namesPlaceholder;
+            document.getElementById('teams-label').textContent = t.teamsLabel;
+            createTeamsBtn.textContent = t.createBtn;
+            document.getElementById('footer-text').textContent = t.footer;
+        }
+
+        // Event listener for language toggle
+        languageToggle.addEventListener('change', updateLanguage);
+        updateLanguage(); // Initial setup
+
+        // Function to shuffle an array (Fisher-Yates algorithm)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Function to show a message (replaces alert)
+        function showMessage(message) {
+            resultsDiv.innerHTML = `
+                <div class="md:col-span-2 lg:col-span-3 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg relative">
+                    <span class="block sm:inline">${message}</span>
+                </div>
+            `;
+        }
+
+        createTeamsBtn.addEventListener('click', () => {
+            const names = namesTextarea.value.trim().split('\n').filter(name => name.trim() !== '');
+            const numTeams = parseInt(numTeamsInput.value, 10);
+
+            // --- Input Validation ---
+            if (names.length === 0) {
+                showMessage(translations[currentLang].errorNames);
+                return;
+            }
+            if (isNaN(numTeams) || numTeams < 1) {
+                showMessage(translations[currentLang].errorTeams);
+                return;
+            }
+            if (numTeams > names.length) {
+                showMessage(translations[currentLang].errorGroups);
+                return;
+            }
+
+            // Shuffle the names to ensure random distribution
+            shuffleArray(names);
+
+            // Create team arrays
+            const teams = Array.from({ length: numTeams }, () => []);
+
+            // Distribute students into teams
+            for (let i = 0; i < names.length; i++) {
+                const teamIndex = i % numTeams;
+                teams[teamIndex].push(names[i]);
+            }
+
+            // Clear previous results and create a new container
+            resultsDiv.innerHTML = '';
+            resultsDiv.classList.add('grid', 'gap-6');
+
+            // --- "Dealing Cards" Animation ---
+            let studentIndex = 0;
+            for (let i = 0; i < teams.length; i++) {
+                const team = teams[i];
+                const teamDiv = document.createElement('div');
+                teamDiv.classList.add(
+                    'bg-gray-100', 'p-6', 'rounded-xl', 'shadow-md', 'border', 'border-blue-200'
+                );
+
+                const teamTitle = document.createElement('h2');
+                teamTitle.textContent = `${translations[currentLang].teamTitle} ${i + 1}`;
+                teamTitle.classList.add(
+                    'text-2xl', 'font-bold', 'mb-4', 'text-slate-800'
+                );
+                teamDiv.appendChild(teamTitle);
+
+                team.forEach(studentName => {
+                    // Create a small delay for each name to replicate the dealing effect
+                    setTimeout(() => {
+                        const studentDiv = document.createElement('div');
+                        studentDiv.textContent = studentName;
+                        studentDiv.classList.add(
+                            'p-3', 'bg-white', 'rounded-lg', 'shadow-sm', 'text-slate-700', 'font-medium',
+                            'mb-2', 'card-effect', 'border', 'border-gray-200'
+                        );
+                        teamDiv.appendChild(studentDiv);
+                    }, studentIndex * 150); // 150ms delay per student
+
+                    studentIndex++;
+                });
+
+                resultsDiv.appendChild(teamDiv);
+            }
+        });
+    </script>
+
+</body>
+</html>
