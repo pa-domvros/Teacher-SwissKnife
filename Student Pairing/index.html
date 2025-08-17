@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pair Creator</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -96,10 +95,8 @@
 </head>
 <body class="text-slate-900 min-h-screen flex flex-col items-center justify-center p-4 md:p-8">
 
-    <!-- Main container with increased transparency -->
     <div class="bg-white/20 backdrop-blur-lg shadow-2xl rounded-2xl p-6 md:p-10 max-w-2xl w-full">
 
-        <!-- Language Toggle -->
         <div class="flex justify-end mb-6">
             <div class="flex items-center space-x-2">
                 <span id="lang-el-label" class="font-semibold text-gray-600">Ελληνικά</span>
@@ -115,9 +112,11 @@
             Pair Creator
         </h1>
 
-        <!-- Input area -->
         <div class="flex flex-col items-center gap-6 mb-8">
             <div class="w-full">
+                <label for="file-upload" class="block text-sm font-medium text-slate-600 mb-2">Or upload a .txt or .docx file:</label>
+                <input id="file-upload" type="file" accept=".txt,.docx" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 mb-4"/>
+
                 <label id="names-label" for="names" class="text-lg font-semibold mb-2 text-slate-700 block">Enter names (one per line):</label>
                 <textarea id="names" rows="10" placeholder="e.g.&#10;Alice&#10;Bob&#10;Charlie&#10;Diana" class="w-full p-4 border border-blue-300 rounded-lg focus:ring-4 focus:ring-blue-200 focus:border-blue-500 transition-all text-slate-700 resize-y bg-white/50"></textarea>
             </div>
@@ -126,14 +125,11 @@
             </button>
         </div>
 
-        <!-- Results area -->
         <div id="results" class="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Pair divs will be dynamically inserted here -->
-        </div>
+            </div>
 
     </div>
 
-    <!-- Footer -->
     <footer class="mt-8 text-center text-slate-800 font-medium">
         <p id="footer-text">✨✍️ Devised by Panagiotis Domvros, English and Drama Teacher, All Rights Reserved ✍️✨</p>
     </footer>
@@ -143,6 +139,40 @@
         const createPairsBtn = document.getElementById('create-pairs-btn');
         const resultsDiv = document.getElementById('results');
         const languageToggle = document.getElementById('language-toggle');
+
+        // MODIFICATION: Logic to handle file uploads
+        const fileUpload = document.getElementById('file-upload');
+
+        fileUpload.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) {
+                return; // No file selected
+            }
+
+            const reader = new FileReader();
+            const fileExtension = file.name.split('.').pop().toLowerCase();
+
+            if (fileExtension === 'txt') {
+                reader.onload = (e) => {
+                    namesTextarea.value = e.target.result;
+                };
+                reader.readAsText(file);
+            } else if (fileExtension === 'docx') {
+                reader.onload = (e) => {
+                    mammoth.extractRawText({ arrayBuffer: e.target.result })
+                        .then(result => {
+                            namesTextarea.value = result.value;
+                        })
+                        .catch(err => {
+                            console.error("Error reading docx file:", err);
+                            alert("Could not read the .docx file.");
+                        });
+                };
+                reader.readAsArrayBuffer(file);
+            } else {
+                alert("Unsupported file type. Please upload a .txt or .docx file.");
+            }
+        });
 
         // Translations for English and Greek
         const translations = {

@@ -1,163 +1,174 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1" name="viewport"/>
-<title>Wheel of Names (Single‑File)</title>
-<style>
-    :root{
-      --bg: #0f172a;          /* slate-900 */
-      --panel: #111827;       /* gray-900 */
-      --panel-2:#0b1220;      /* deeper */
-      --text: #e5e7eb;        /* gray-200 */
-      --muted:#9ca3af;        /* gray-400 */
-      --accent:#60a5fa;       /* blue-400 */
-      --good:#34d399;         /* emerald-400 */
-      --warn:#f59e0b;         /* amber-500 */
-      --bad:#ef4444;          /* red-500 */
-      --ring:#ffffff22;
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+    <title>Wheel of Names (Single‑File)</title>
+    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+    <style>
+        :root{
+          --bg: #0f172a;          /* slate-900 */
+          --panel: #111827;       /* gray-900 */
+          --panel-2:#0b1220;      /* deeper */
+          --text: #e5e7eb;        /* gray-200 */
+          --muted:#9ca3af;        /* gray-400 */
+          --accent:#60a5fa;       /* blue-400 */
+          --good:#34d399;         /* emerald-400 */
+          --warn:#f59e0b;         /* amber-500 */
+          --bad:#ef4444;          /* red-500 */
+          --ring:#ffffff22;
+        }
+        *{box-sizing:border-box}
+        html,body{height:100%}
+        body{
+          margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji","Segoe UI Emoji";
+          background: radial-gradient(1200px 800px at 10% -10%, #1f2937, transparent),
+                      radial-gradient(1200px 800px at 110% 10%, #1d2433, transparent),
+                      var(--bg);
+          color:var(--text);
+          display:flex; flex-direction:column; gap:16px;
+        }
+        header{
+          padding:16px 20px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+          background: linear-gradient(180deg, #0b1220c0, #0b122000);
+          position:sticky; top:0; backdrop-filter: blur(6px);
+          z-index:5; border-bottom:1px solid #ffffff0d;
+        }
+        .title{font-size:20px; font-weight:700; letter-spacing:.2px}
+        .sub{color:var(--muted); font-size:13px}
+        main{display:grid; grid-template-columns: 1fr 380px; gap:16px; padding:0 16px 20px; max-width:1300px; width:100%; margin:0 auto;}
+        @media (max-width: 980px){ main{grid-template-columns: 1fr} }
+
+        .panel{background: linear-gradient(180deg, var(--panel), var(--panel-2)); border:1px solid #ffffff12; border-radius:16px; box-shadow: 0 10px 30px #00000055;}
+        .canvas-wrap{padding:16px; display:grid; grid-template-rows:auto 1fr auto; gap:12px;}
+        .wheel-box{position:relative; display:flex; align-items:center; justify-content:center; min-height:260px;}
+        canvas{max-width:100%; height:auto; display:block;}
+    .pointer{
+      position:absolute; top:-4px; left:50%; transform:translateX(-50%);
+      width:0; height:0;
+      border-left:12px solid transparent; border-right:12px solid transparent;
+      border-bottom:15px solid var(--accent);
+      filter: drop-shadow(0 4px 6px #0008);
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica Neue, Arial, "Apple Color Emoji","Segoe UI Emoji";
-      background: radial-gradient(1200px 800px at 10% -10%, #1f2937, transparent),
-                  radial-gradient(1200px 800px at 110% 10%, #1d2433, transparent),
-                  var(--bg);
-      color:var(--text);
-      display:flex; flex-direction:column; gap:16px;
-    }
-    header{
-      padding:16px 20px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;
-      background: linear-gradient(180deg, #0b1220c0, #0b122000);
-      position:sticky; top:0; backdrop-filter: blur(6px);
-      z-index:5; border-bottom:1px solid #ffffff0d;
-    }
-    .title{font-size:20px; font-weight:700; letter-spacing:.2px}
-    .sub{color:var(--muted); font-size:13px}
-    main{display:grid; grid-template-columns: 1fr 380px; gap:16px; padding:0 16px 20px; max-width:1300px; width:100%; margin:0 auto;}
-    @media (max-width: 980px){ main{grid-template-columns: 1fr} }
 
-    .panel{background: linear-gradient(180deg, var(--panel), var(--panel-2)); border:1px solid #ffffff12; border-radius:16px; box-shadow: 0 10px 30px #00000055;}
-    .canvas-wrap{padding:16px; display:grid; grid-template-rows:auto 1fr auto; gap:12px;}
-    .wheel-box{position:relative; display:flex; align-items:center; justify-content:center; min-height:260px;}
-    canvas{max-width:100%; height:auto; display:block;}
-.pointer{
-  position:absolute; top:-4px; left:50%; transform:translateX(-50%);
-  width:0; height:0;
-  border-left:12px solid transparent; border-right:12px solid transparent;
-  border-bottom:15px solid var(--accent);
-  filter: drop-shadow(0 4px 6px #0008);
-}
+        .controls{display:flex; flex-wrap:wrap; gap:8px;}
+        button, .btn{
+          appearance:none; border:none; padding:10px 14px; border-radius:999px; background:#111827; color:var(--text); cursor:pointer; font-weight:600; border:1px solid #ffffff1a;
+          transition: transform .05s ease, background .2s ease, border-color .2s ease; user-select:none;
+        }
+        button:hover{background:#172036; border-color:#ffffff30}
+        button:active{transform:translateY(1px)}
+        .btn-accent{background: linear-gradient(180deg, #1e3a8a, #1f4fb3); border-color:#60a5fa66}
+        .btn-accent:hover{background: linear-gradient(180deg, #2346a6, #285fce)}
+        .btn-good{background: linear-gradient(180deg, #0f766e, #059669)}
 
-    .controls{display:flex; flex-wrap:wrap; gap:8px;}
-    button, .btn{
-      appearance:none; border:none; padding:10px 14px; border-radius:999px; background:#111827; color:var(--text); cursor:pointer; font-weight:600; border:1px solid #ffffff1a;
-      transition: transform .05s ease, background .2s ease, border-color .2s ease; user-select:none;
-    }
-    button:hover{background:#172036; border-color:#ffffff30}
-    button:active{transform:translateY(1px)}
-    .btn-accent{background: linear-gradient(180deg, #1e3a8a, #1f4fb3); border-color:#60a5fa66}
-    .btn-accent:hover{background: linear-gradient(180deg, #2346a6, #285fce)}
-    .btn-good{background: linear-gradient(180deg, #0f766e, #059669)}
+        .sidebar{padding:14px; display:grid; gap:12px; align-content:start}
+        .section{display:grid; gap:8px}
+        .section h3{margin:0; font-size:14px; letter-spacing:.2px; text-transform:uppercase; color:#a3b2d1}
 
-    .sidebar{padding:14px; display:grid; gap:12px; align-content:start}
-    .section{display:grid; gap:8px}
-    .section h3{margin:0; font-size:14px; letter-spacing:.2px; text-transform:uppercase; color:#a3b2d1}
+        .pill{
+          display:flex; align-items:center; gap:8px; background:#101826; border:1px solid #ffffff14; padding:8px 10px; border-radius:12px;
+        }
+        .pill input[type="text"]{flex:1; background:transparent; border:none; outline:none; color:var(--text); font-size:14px}
+        .list{display:flex; flex-wrap:wrap; gap:8px}
+        .chip{display:inline-flex; align-items:center; gap:6px; padding:8px 10px; border-radius:999px; background:#0e1624; border:1px solid #ffffff14; font-size:14px}
+        .chip button{background:transparent; border:none; color:#93a3c3; cursor:pointer; padding:0 4px}
 
-    .pill{
-      display:flex; align-items:center; gap:8px; background:#101826; border:1px solid #ffffff14; padding:8px 10px; border-radius:12px;
-    }
-    .pill input[type="text"]{flex:1; background:transparent; border:none; outline:none; color:var(--text); font-size:14px}
-    .list{display:flex; flex-wrap:wrap; gap:8px}
-    .chip{display:inline-flex; align-items:center; gap:6px; padding:8px 10px; border-radius:999px; background:#0e1624; border:1px solid #ffffff14; font-size:14px}
-    .chip button{background:transparent; border:none; color:#93a3c3; cursor:pointer; padding:0 4px}
+        textarea{width:100%; min-height:90px; resize:vertical; border-radius:12px; background:#0c1422; color:var(--text); border:1px solid #ffffff14; padding:10px; font-family:inherit}
 
-    textarea{width:100%; min-height:90px; resize:vertical; border-radius:12px; background:#0c1422; color:var(--text); border:1px solid #ffffff14; padding:10px; font-family:inherit}
+        .row{display:flex; gap:8px; flex-wrap:wrap}
+        .grow{flex:1}
+        label{font-size:13px; color:#9badcf}
+        input[type="checkbox"]{transform:translateY(1px)}
+        input[type="range"]{width:100%}
 
-    .row{display:flex; gap:8px; flex-wrap:wrap}
-    .grow{flex:1}
-    label{font-size:13px; color:#9badcf}
-    input[type="checkbox"]{transform:translateY(1px)}
-    input[type="range"]{width:100%}
+        .result{display:flex; align-items:center; justify-content:center; font-size:32px; font-weight:800; padding:8px; min-height:48px}
 
-    .result{display:flex; align-items:center; justify-content:center; font-size:32px; font-weight:800; padding:8px; min-height:48px}
+        .history{display:flex; flex-wrap:wrap; gap:8px}
+        .history .item{padding:6px 10px; border-radius:999px; background:#121a2b; border:1px solid #ffffff14}
 
-    .history{display:flex; flex-wrap:wrap; gap:8px}
-    .history .item{padding:6px 10px; border-radius:999px; background:#121a2b; border:1px solid #ffffff14}
+        .footer-note{font-size:12px; color:#94a3b8; text-align:center; padding:8px 12px}
 
-    .footer-note{font-size:12px; color:#94a3b8; text-align:center; padding:8px 12px}
+        .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:12px; padding:2px 6px; border-radius:6px; background:#0b1220; border:1px solid #ffffff22}
 
-    .kbd{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size:12px; padding:2px 6px; border-radius:6px; background:#0b1220; border:1px solid #ffffff22}
-
-    .ring{outline:2px solid var(--ring); outline-offset:2px}
-  </style>
+        .ring{outline:2px solid var(--ring); outline-offset:2px}
+    </style>
 </head>
 <body>
-<header>
-<div class="title" id="titleText">🎡 Wheel of Names<button id="clear-all-names" style="margin-left:8px; padding:6px 10px; border-radius:6px; border:1px solid #e5e7eb; background:#f3f4f6; cursor:pointer;" type="button">Clear All Names</button></div><div class="sub">Created: Panagiotis Domvros, English and Drama Educator</div>
-<div class="sub" id="subtitleText">A lightweight, offline, single‑file spinner inspired by wheelofnames.com</div>
-<span style="flex:1"></span>
-<button id="fullscreenBtn" title="Toggle Fullscreen">⛶ Fullscreen</button><button class="btn" id="lang-el" title="Μετάβαση στα Ελληνικά">Ελληνικά</button><button class="btn" id="lang-en" style="margin-left:8px;" title="Switch to English">English</button>
-</header>
-<main>
-<!-- Left: Wheel -->
-<section class="panel canvas-wrap">
-<div class="controls">
-<button class="btn-accent" id="spinBtn">▶️ Spin</button>
-<button id="shuffleBtn">🔀 Shuffle</button>
-<button id="clearBtn">🧹 Clear</button>
-<button id="sampleBtn">✨ Add Sample Names</button>
-<label class="pill"><input checked="" id="noRepeats" type="checkbox"/> No repeats<span id="noRepeatsLabel"> No repeats</span></label>
-</div>
-<div class="wheel-box">
-<div class="pointer"></div>
-<canvas aria-label="Wheel canvas" height="576" id="wheel" width="576"></canvas>
-</div>
-<div class="result" id="result">—</div>
-<div aria-live="polite" class="history" id="history"></div>
-<div class="footer-note" id="tipText">Tip: Paste a list (one name per line) and press <span class="kbd">Enter</span> to add. Press <span class="kbd">Space</span> to spin.</div>
-</section>
-<!-- Right: Sidebar -->
-<aside class="panel sidebar">
-<div class="section">
-<h3 id="sectionAddNames">Add Names</h3>
-<div class="pill">
-<input id="nameInput" placeholder="Type a name and hit Enter…" type="text"/>
-<button id="addBtn" title="Add name">＋</button>
-</div>
-<textarea id="bulk" placeholder="Or paste many names here (one per line) and click 'Add All'."></textarea>
-<div class="row">
-<button class="grow" id="addAllBtn">Add All</button>
-<button id="dedupeBtn">Dedupe</button>
-</div>
-<div class="list" id="list"></div>
-</div>
-<div class="section">
-<h3 id="sectionOptions">Options</h3>
-<label>Spin duration (<span id="durVal">5.0</span>s)</label>
-<input id="duration" max="12" min="2" step="0.5" type="range" value="5"/>
-<label>Revolutions (<span id="revVal">4</span>–<span id="revValMax">7</span>)</label>
-<input id="revs" max="10" min="3" step="1" type="range" value="4"/>
-<label id="labelTextSize">Text size</label>
-<input id="textSize" max="34" min="10" step="1" type="range" value="18"/>
-<label><input checked="" id="tickSound" type="checkbox"/> Tick sound</label>
-<label><input checked="" id="confetti" type="checkbox"/> Confetti on win</label>
-</div>
-<div class="section">
-<h3 id="sectionSaveLoad">Save/Load</h3>
-<div class="row">
-<button id="saveBtn">💾 Save to Browser</button>
-<button id="loadBtn">📂 Load</button>
-<button id="exportBtn">⬇️ Export .json</button>
-<input accept="application/json" id="importFile" style="display:none" type="file"/>
-<button id="importBtn">⬆️ Import</button>
-</div>
-</div>
-</aside>
-</main>
-<script>let __audioCtx = null;
+    <header>
+        <div class="title" id="titleText">🎡 Wheel of Names</div>
+        <div class="sub">Created: Panagiotis Domvros, English and Drama Educator</div>
+        <div class="sub" id="subtitleText">A lightweight, offline, single‑file spinner inspired by wheelofnames.com</div>
+        <span style="flex:1"></span>
+        <button id="fullscreenBtn" title="Toggle Fullscreen">⛶ Fullscreen</button>
+        <button class="btn" id="lang-el" title="Μετάβαση στα Ελληνικά">Ελληνικά</button>
+        <button class="btn" id="lang-en" style="margin-left:8px;" title="Switch to English">English</button>
+    </header>
+    <main>
+        <section class="panel canvas-wrap">
+            <div class="controls">
+                <button class="btn-accent" id="spinBtn">▶️ Spin</button>
+                <button id="shuffleBtn">🔀 Shuffle</button>
+                <button id="clearBtn">🧹 Clear</button>
+                <button id="sampleBtn">✨ Add Sample Names</button>
+                <label class="pill">
+                    <input checked="" id="noRepeats" type="checkbox"/>
+                    <span id="noRepeatsLabel"> No repeats</span>
+                </label>
+            </div>
+            <div class="wheel-box">
+                <div class="pointer"></div>
+                <canvas aria-label="Wheel canvas" height="576" id="wheel" width="576"></canvas>
+            </div>
+            <div class="result" id="result">—</div>
+            <div aria-live="polite" class="history" id="history"></div>
+            <div class="footer-note" id="tipText">Tip: Paste a list (one name per line) and press <span class="kbd">Enter</span> to add. Press <span class="kbd">Space</span> to spin.</div>
+        </section>
+        <aside class="panel sidebar">
+            <div class="section">
+                <h3 id="sectionAddNames">Add Names</h3>
+                <div class="pill">
+                    <input id="nameInput" placeholder="Type a name and hit Enter…" type="text"/>
+                    <button id="addBtn" title="Add name">＋</button>
+                </div>
+                
+                <input type="file" id="file-upload-input" style="display: none;" accept=".txt,.docx">
+                <button id="uploadFromFileBtn">📤 Upload from File</button>
+                
+                <textarea id="bulk" placeholder="Or paste many names here (one per line) and click 'Add All'."></textarea>
+                <div class="row">
+                    <button class="grow" id="addAllBtn">Add All</button>
+                    <button id="dedupeBtn">Dedupe</button>
+                </div>
+                <div class="list" id="list"></div>
+            </div>
+            <div class="section">
+                <h3 id="sectionOptions">Options</h3>
+                <label>Spin duration (<span id="durVal">5.0</span><span id="durUnit">s</span>)</label>
+                <input id="duration" max="12" min="2" step="0.5" type="range" value="5"/>
+                <label>Revolutions (<span id="revVal">4</span>–<span id="revValMax">7</span>)</label>
+                <input id="revs" max="10" min="3" step="1" type="range" value="4"/>
+                <label id="labelTextSize">Text size</label>
+                <input id="textSize" max="34" min="10" step="1" type="range" value="18"/>
+                <label><input checked="" id="tickSound" type="checkbox"/><span id="tickText"> Tick sound</span></label>
+                <label><input checked="" id="confetti" type="checkbox"/><span id="confettiText"> Confetti on win</span></label>
+            </div>
+            <div class="section">
+                <h3 id="sectionSaveLoad">Save/Load</h3>
+                <div class="row">
+                    <button id="saveBtn">💾 Save to Browser</button>
+                    <button id="loadBtn">📂 Load</button>
+                    <button id="exportBtn">⬇️ Export .json</button>
+                    <input accept="application/json" id="importFile" style="display:none" type="file"/>
+                    <button id="importBtn">⬆️ Import</button>
+                </div>
+            </div>
+        </aside>
+    </main>
+<script>
+  // This is the main script for the Wheel of Names application.
+  
+  let __audioCtx = null;
 
   // --- Utility ---
   const $ = sel => document.querySelector(sel);
@@ -251,7 +262,6 @@
   }
 
   function wrapText(ctx, text, maxWidth, arcAngle, lineHeight){
-    // simple wrap: split to words, grow line until width exceeds maxWidth
     const words = (text+"").split(/\s+/);
     let line = '';
     const lines = [];
@@ -260,7 +270,6 @@
       if (ctx.measureText(test).width < maxWidth) line = test; else { lines.push(line); line = w; }
     }
     if (line) lines.push(line);
-    // draw from outer to inner
     const offset = Math.min(lines.length, Math.floor((arcAngle * 180/Math.PI)/2));
     for (let i=0;i<lines.length;i++){
       ctx.save();
@@ -275,54 +284,38 @@
   function spin(){
     if (state.spinning || state.items.length === 0) return;
     state.spinning = true; $('#spinBtn').classList.add('ring');
-    const dur = parseFloat($('#duration').value); // seconds
+    const dur = parseFloat($('#duration').value);
     const revMin = parseInt($('#revs').value), revMax = Math.max(revMin+3, 7);
 
     const n = state.items.length; const slice = Math.PI*2/n;
     const targetIndex = Math.floor(rand(0,n));
-    const targetAngle = -Math.PI/2 - (targetIndex + 0.5)*slice; // center of slice under pointer
+    const targetAngle = -Math.PI/2 - (targetIndex + 0.5)*slice;
 
     const extraTurns = rand(revMin, revMax) * Math.PI*2;
-
     const startAngle = state.angle;
     let delta = targetAngle - startAngle;
-    // normalize delta to the smallest positive angle + full revolutions
     while (delta < 0) delta += Math.PI*2;
     delta += extraTurns;
 
     const start = performance.now();
-
-    // Audio setup
     const doTick = $('#tickSound').checked;
-    let tickOsc = null;
-    if (doTick && 'AudioContext' in window){ audioCtx = new AudioContext(); }
-
-    const totalTicks = n * Math.ceil((delta)/(Math.PI*2));
-    let nextTickAngle = startAngle + slice; // first boundary after start
+    if (doTick && 'AudioContext' in window){ __audioCtx = __audioCtx || new AudioContext(); }
+    let nextTickAngle = startAngle + slice;
 
     function playTick(){
       if (!__audioCtx) return;
       const o = __audioCtx.createOscillator(); const g = __audioCtx.createGain();
-      o.type = 'square'; o.frequency.value = 880; g.gain.value = 0.04; o.connect(g); g.connect(audioCtx.destination);
-      o.start(); o.stop(audioCtx.currentTime + 0.03);
+      o.type = 'square'; o.frequency.value = 880; g.gain.value = 0.04; o.connect(g); g.connect(__audioCtx.destination);
+      o.start(); o.stop(__audioCtx.currentTime + 0.03);
     }
 
     function step(now){
       const t = clamp((now - start) / (dur*1000), 0, 1);
       const eased = easeOutCubic(t);
       state.angle = startAngle + delta * eased;
-
-      // tick when crossing boundaries
-      if (doTick){
-        while (state.angle > nextTickAngle){ playTick(); nextTickAngle += slice; }
-      }
-
+      if (doTick){ while (state.angle > nextTickAngle){ playTick(); nextTickAngle += slice; } }
       drawWheel();
-
-      if (t < 1) requestAnimationFrame(step); else {
-        state.spinning = false; $('#spinBtn').classList.remove('ring');
-        settleWinner();
-      }
+      if (t < 1) requestAnimationFrame(step); else { state.spinning = false; $('#spinBtn').classList.remove('ring'); settleWinner(); }
     }
     requestAnimationFrame(step);
   }
@@ -330,11 +323,10 @@
   function settleWinner(){
     const n = state.items.length; if (!n) return;
     const slice = Math.PI*2/n;
-    // Which index is at pointer (12 o'clock slightly below triangle)
     const a = (state.angle % (Math.PI*2) + Math.PI*2) % (Math.PI*2);
     const fromTop = (a + Math.PI/2) % (Math.PI*2);
     let idx = Math.floor(fromTop / slice);
-    idx = (n - 1 - idx + n) % n; // invert due to arc direction
+    idx = (n - 1 - idx + n) % n;
 
     const winner = state.items[idx];
     $('#result').textContent = winner || '—';
@@ -342,31 +334,21 @@
     renderHistory();
 
     if ($('#confetti').checked) launchConfetti();
-
-    if ($('#noRepeats').checked){
-      state.items.splice(idx,1);
-      renderList();
-      drawWheel();
-    }
+    if ($('#noRepeats').checked){ state.items.splice(idx,1); renderList(); drawWheel(); }
   }
 
-  // --- Confetti --- (minimal, no deps)
+  // --- Confetti ---
   function launchConfetti(){
-    const count = 160;
-    const end = Date.now() + 900;
-    const defaults = { origin: { x: 0.5, y: 0.1 } };
-
+    const count = 160, end = Date.now() + 900;
     const canvasConf = document.createElement('canvas');
     Object.assign(canvasConf.style,{position:'fixed', inset:0, pointerEvents:'none'});
     document.body.appendChild(canvasConf);
     const cctx = canvasConf.getContext('2d');
     const DPR = window.devicePixelRatio||1; canvasConf.width = innerWidth*DPR; canvasConf.height = innerHeight*DPR; cctx.setTransform(DPR,0,0,DPR,0,0);
-
     const pieces = Array.from({length:count}, () => ({
       x: innerWidth/2 + rand(-80,80), y: innerHeight*0.08 + rand(-20,20), r: rand(2,5),
       vx: rand(-5,5), vy: rand(-3,3), rot: rand(0,Math.PI*2), vr: rand(-0.2,0.2), col: `hsl(${Math.floor(rand(0,360))} 90% 60%)`
     }));
-
     function loop(){
       cctx.clearRect(0,0,innerWidth,innerHeight);
       for (const p of pieces){
@@ -388,7 +370,6 @@
       el.innerHTML = `<span>${escapeHtml(name)}</span> <button title="Remove" data-i="${i}">✕</button>`;
       listEl.appendChild(el);
     });
-    // remove handlers
     listEl.querySelectorAll('button').forEach(btn => btn.onclick = () => { state.items.splice(parseInt(btn.dataset.i),1); renderList(); drawWheel(); saveLocal(); });
   }
 
@@ -421,7 +402,7 @@
   // --- Event wiring ---
   $('#spinBtn').onclick = spin;
   $('#shuffleBtn').onclick = shuffle;
-  $('#clearBtn').onclick = () => { state.items = []; renderList(); drawWheel(); saveLocal(); };
+  $('#clearBtn').onclick = () => { state.items = []; state.history = []; renderList(); renderHistory(); drawWheel(); saveLocal(); };
   $('#sampleBtn').onclick = () => { addBulk('Alice\nBob\nCharlie\nDiana\nEleni\nFarid\nGiorgos\nHana\nIris\nJamal'); };
   $('#addBtn').onclick = () => { addName($('#nameInput').value); $('#nameInput').value=''; $('#nameInput').focus(); };
   $('#nameInput').addEventListener('keydown', e => { if (e.key==='Enter'){ e.preventDefault(); $('#addBtn').click(); } });
@@ -446,10 +427,40 @@
     e.target.value = '';
   });
 
+  // NEW: File upload from .txt/.docx
+  const fileUploadInput = $('#file-upload-input');
+  $('#uploadFromFileBtn').onclick = () => fileUploadInput.click();
+  fileUploadInput.addEventListener('change', (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      const fileExtension = file.name.split('.').pop().toLowerCase();
+      const currentLang = document.documentElement.lang || 'en';
+
+      if (fileExtension === 'txt') {
+          reader.onload = (e) => addBulk(e.target.result);
+          reader.readAsText(file);
+      } else if (fileExtension === 'docx') {
+          reader.onload = (e) => {
+              mammoth.extractRawText({ arrayBuffer: e.target.result })
+                  .then(result => addBulk(result.value))
+                  .catch(err => {
+                      console.error("Error reading docx file:", err);
+                      alert(currentLang === 'el' ? 'Δεν ήταν δυνατή η ανάγνωση του αρχείου .docx.' : 'Could not read the .docx file.');
+                  });
+          };
+          reader.readAsArrayBuffer(file);
+      } else {
+          alert(currentLang === 'el' ? 'Μη υποστηριζόμενος τύπος αρχείου. Παρακαλώ ανεβάστε αρχείο .txt ή .docx.' : 'Unsupported file type. Please upload a .txt or .docx file.');
+      }
+      event.target.value = ''; // Reset input
+  });
+
   $('#fullscreenBtn').onclick = () => { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); };
 
   document.addEventListener('keydown', (e) => {
-    if (e.target && (e.target.tagName==='INPUT' || e.target.tagName==='TEXTAREA')) return; // ignore typing into fields
+    if (e.target && (e.target.tagName==='INPUT' || e.target.tagName==='TEXTAREA')) return;
     if (e.code === 'Space'){ e.preventDefault(); spin(); }
   });
 
@@ -458,34 +469,11 @@
   $('#durVal').textContent = parseFloat($('#duration').value).toFixed(1);
   $('#revVal').textContent = $('#revs').value; $('#revValMax').textContent = Math.max(parseInt($('#revs').value)+3,7);
 
-  </script>
-<footer style="text-align:center; padding:12px; color:#94a3b8; font-size:12px;">✨✍️ Devised by Panagiotis Domvros, English and Drama Teacher, All Rights Reserved ✍️✨</footer><script>
-(function(){
-  function clearNamesArray() {
-    if (window.segments && Array.isArray(window.segments)) {
-      window.segments.length = 0;
-    }
-    if (typeof refreshWheel === 'function') { try { refreshWheel(); } catch(e){} }
-    if (typeof draw === 'function') { try { draw(); } catch(e){} }
-  }
-  function clearNamesUI() {
-    var ta = document.querySelector('textarea');
-    if (ta) ta.value = '';
-    var list = document.querySelector('ul, ol');
-    if (list && list.children && list.children.length) {
-      while (list.firstChild) list.removeChild(list.firstChild);
-    }
-  }
-  var btn = document.getElementById('clear-all-names');
-  if (btn) {
-    btn.addEventListener('click', function(){
-      clearNamesArray();
-      clearNamesUI();
-    });
-  }
-})();
 </script>
+<footer style="text-align:center; padding:12px; color:#94a3b8; font-size:12px;">✨✍️ Devised by Panagiotis Domvros, English and Drama Teacher, All Rights Reserved ✍️✨</footer>
+
 <script>
+// This is the internationalization (I18N) script.
 (function(){
   const I18N = {
     en: {
@@ -500,6 +488,7 @@
       addNames: "Add Names",
       namePh: "Type a name and hit Enter…",
       addBtn: "＋",
+      uploadFromFile: "📤 Upload from File", // NEW
       bulkPh: "Or paste many names here (one per line) and click 'Add All'.",
       addAll: "Add All",
       dedupe: "Dedupe",
@@ -517,7 +506,8 @@
       import: "⬆️ Import",
       fullscreenTitle: "Toggle Fullscreen",
       invalidJson: "Invalid JSON",
-      clearAllNames: "Clear All Names"
+      errorFileType: "Unsupported file type. Please upload a .txt or .docx file.", // NEW
+      errorDocx: "Could not read the .docx file." // NEW
     },
     el: {
       title: "🎡 Τροχός Ονομάτων",
@@ -531,7 +521,8 @@
       addNames: "Προσθήκη Ονομάτων",
       namePh: "Πληκτρολογήστε όνομα και πατήστε Enter…",
       addBtn: "＋",
-      bulkPh: "Ή επικολλήστε πολλά ονόματα εδώ (ένα ανά γραμμή) και πατήστε «Προσθήκη Όλων».",
+      uploadFromFile: "📤 Μεταφόρτωση από Αρχείο", // NEW
+      bulkPh: "Ή επικολλήστε πολλά ονόματα εδώ (ένα ανά γραмμή) και πατήστε «Προσθήκη Όλων».",
       addAll: "Προσθήκη Όλων",
       dedupe: "Αφαίρεση Διπλότυπων",
       options: "Επιλογές",
@@ -548,7 +539,8 @@
       import: "⬆️ Εισαγωγή",
       fullscreenTitle: "Εναλλαγή πλήρους οθόνης",
       invalidJson: "Μη έγκυρο JSON",
-      clearAllNames: "Καθαρισμός Όλων"
+      errorFileType: "Μη υποστηριζόμενος τύπος αρχείου. Παρακαλώ ανεβάστε αρχείο .txt ή .docx.", // NEW
+      errorDocx: "Δεν ήταν δυνατή η ανάγνωση του αρχείου .docx." // NEW
     }
   };
 
@@ -564,52 +556,53 @@
     setTxt('shuffleBtn', t.shuffle);
     setTxt('clearBtn', t.clear);
     setTxt('sampleBtn', t.addSample);
-    const nr = document.getElementById('noRepeatsLabel'); if (nr) nr.textContent = t.noRepeats;
+    set('noRepeatsLabel', t.noRepeats);
     set('tipText', t.tip);
     setTxt('sectionAddNames', t.addNames);
     setPh('nameInput', t.namePh);
     setTxt('addBtn', t.addBtn);
+    setTxt('uploadFromFileBtn', t.uploadFromFile); // NEW
     setPh('bulk', t.bulkPh);
     setTxt('addAllBtn', t.addAll);
     setTxt('dedupeBtn', t.dedupe);
     setTxt('sectionOptions', t.options);
-    set('spinDurationText', t.spinDuration);
     set('durUnit', t.secondsUnit);
-    set('revsText', t.revolutions);
+    document.querySelector('label[for="duration"], label:not([for]) > span:first-child').innerHTML = t.spinDuration + ' (<span id="durVal">5.0</span>' + t.secondsUnit + ')';
+    document.querySelector('label[for="revs"], label:not([for]) > span:nth-of-type(2)').innerHTML = t.revolutions + ' (<span id="revVal">4</span>–<span id="revValMax">7</span>)';
     setTxt('labelTextSize', t.textSize);
-    const tick = document.getElementById('tickText'); if (tick) tick.textContent = t.tick;
-    const conf = document.getElementById('confettiText'); if (conf) conf.textContent = t.confetti;
+    set('tickText', t.tick);
+    set('confettiText', t.confetti);
     setTxt('sectionSaveLoad', t.saveLoad);
     setTxt('saveBtn', t.save);
     setTxt('loadBtn', t.load);
     setTxt('exportBtn', t.export);
     setTxt('importBtn', t.import);
     const fs = document.getElementById('fullscreenBtn'); if (fs) fs.title = t.fullscreenTitle;
-    const clearAll = document.getElementById('clear-all-names'); if (clearAll) clearAll.textContent = t.clearAllNames;
 
-    document.documentElement.lang = (lang === 'el' ? 'el' : 'en');
+    document.documentElement.lang = lang;
     localStorage.setItem('wheel_lang', lang);
   }
+  
+  // Patch alert to use translated strings
+  const _alert = window.alert;
+  window.alert = function(msg){
+    const lang = localStorage.getItem('wheel_lang') || 'en';
+    const t = I18N[lang] || I18N.en;
+
+    if (msg && /Invalid JSON/i.test(msg)) msg = t.invalidJson;
+    else if (msg && /unsupported file type/i.test(msg)) msg = t.errorFileType;
+    else if (msg && /could not read/i.test(msg)) msg = t.errorDocx;
+    
+    return _alert.call(window, msg);
+  };
 
   // Wire toggles
   function initLang(){
     const saved = localStorage.getItem('wheel_lang') || 'en';
     applyLang(saved);
-    const enBtn = document.getElementById('lang-en');
-    const elBtn = document.getElementById('lang-el');
-    if (enBtn) enBtn.onclick = ()=>applyLang('en');
-    if (elBtn) elBtn.onclick = ()=>applyLang('el');
+    $('#lang-en').onclick = () => applyLang('en');
+    $('#lang-el').onclick = () => applyLang('el');
   }
-
-  // Patch error messages
-  const _alert = window.alert;
-  window.alert = function(msg){
-    const lang = localStorage.getItem('wheel_lang') || 'en';
-    if (msg && /Invalid JSON/i.test(msg)){
-      msg = (lang === 'el') ? I18N.el.invalidJson : I18N.en.invalidJson;
-    }
-    return _alert.call(window, msg);
-  };
 
   if (document.readyState === 'complete' || document.readyState === 'interactive'){
     initLang();
