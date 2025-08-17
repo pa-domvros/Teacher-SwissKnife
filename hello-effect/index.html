@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Georgia Text – Neon Toggle + Hourglass Timer</title>
+  <style>
+    :root{
+      --text-speed: 9.6s;
+      --pulse-speed: 3.6s;
+      --outline: rgba(25,25,35,0.92);
+      --shadow: rgba(25,25,35,0.85);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:'Georgia', serif;
+      background:#fdfcf7;
+    }
+
+    main{
+      width:min(92vw, 1400px);
+      margin:3rem auto 0 auto;
+      text-align:center;
+    }
+
+    h1#headline{
+      margin:0;
+      font-weight:700;
+      font-size: 12vmin;
+      line-height:1.1;
+      white-space:normal;
+      word-break:break-word;
+      -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color: transparent;
+      caret-color:#1a1a1a;
+      animation:
+        textSpin var(--text-speed) linear infinite,
+        neonPulse var(--pulse-speed) ease-in-out infinite;
+      -webkit-text-stroke: 2.5px var(--outline);
+      text-shadow:
+        0 0 0 var(--outline),
+        0 1px 0 var(--outline), 0 -1px 0 var(--outline), 1px 0 0 var(--outline), -1px 0 0 var(--outline),
+        1px 1px 0 var(--outline), -1px 1px 0 var(--outline), 1px -1px 0 var(--outline), -1px -1px 0 var(--outline),
+        0 6px 12px var(--shadow);
+      position:relative;
+      transition: font-size 0.18s ease;
+      max-width:100%;
+      display:inline-block;
+    }
+
+    h1#headline::after{
+      content: attr(data-text);
+      position:absolute; inset:0; pointer-events:none;
+      -webkit-background-clip:text; background-clip:text; color:transparent; -webkit-text-fill-color: transparent;
+      background: inherit; background-size: inherit;
+      animation: inherit;
+      white-space:inherit;
+      line-height:inherit;
+    }
+
+    /* Palette classes */
+    .cool{ background: conic-gradient(from 0deg, #00F0FF, #FF00C8, #39FF14, #00F0FF); background-size:200% 200%; }
+    .cool::after{ text-shadow:0 0 14px rgba(0,240,255,0.9),0 0 28px rgba(255,0,200,0.85),0 0 44px rgba(57,255,20,0.85),0 0 70px rgba(57,255,20,0.75); }
+
+    .classic{ background: conic-gradient(from 0deg, #00FFFF, #FF00FF, #FFFF00, #00FFFF); background-size:200% 200%; }
+    .classic::after{ text-shadow:0 0 14px rgba(0,255,255,0.95),0 0 28px rgba(255,0,255,0.9),0 0 44px rgba(255,255,0,0.9),0 0 70px rgba(255,255,0,0.75); }
+
+    .luxe{ background: conic-gradient(from 0deg, #FFD700, #00BFA5, #6C2BD9, #FFD700); background-size:200% 200%; }
+    .luxe::after{ text-shadow:0 0 14px rgba(255,215,0,0.95),0 0 28px rgba(0,191,165,0.9),0 0 44px rgba(108,43,217,0.9),0 0 70px rgba(108,43,217,0.75); }
+
+    #palette-container{ position:fixed; top:1rem; right:1rem; z-index:10; }
+    select{ font-size:1rem; padding:.3rem .6rem; border-radius:.4rem; border:1px solid #ccc; background:#fff; font-family:inherit; cursor:pointer; }
+
+    /* Hourglass timer container below text */
+    #timer-container{
+      margin:2rem auto;
+      display:flex; flex-direction:column; align-items:center; gap:.5rem;
+      user-select:none;
+    }
+    #time{ font-variant-numeric:tabular-nums; font-size:1.4rem; }
+    #timer-controls button, #timer-controls input{
+      font: inherit; font-size:1rem; line-height:1; padding:.3rem .6rem; cursor:pointer;
+      border:1px solid #ccc; border-radius:.4rem; background:#fff; opacity:.85;
+    }
+    #timer-controls button:hover{ opacity:1 }
+    #hourglass{ width:144px; height:216px; display:block; }
+
+    @keyframes textSpin{ to { background-position:200% 200%; } }
+    @keyframes neonPulse{ 0%,100% { filter:brightness(1); } 50% { filter:brightness(1.3); } }
+  </style>
+</head>
+<body>
+
+  <!-- PALETTE (top-right) -->
+  <div id="palette-container">
+    <select id="palette">
+      <option value="cool">Cool Neon</option>
+      <option value="classic">Classic Neon</option>
+      <option value="luxe">Refined Luxe</option>
+    </select>
+  </div>
+
+  <main>
+    <h1 id="headline" class="cool" data-text="HELLO!" contenteditable>HELLO!</h1>
+
+    <!-- TIMER (below text) -->
+    <div id="timer-container">
+      <svg id="hourglass" viewBox="0 0 100 140" aria-hidden="true">
+        <path d="M20 10 H80 Q90 10 90 20 V30 Q90 40 80 50 L60 70 L80 90 Q90 100 90 110 V120 Q90 130 80 130 H20 Q10 130 10 120 V110 Q10 100 20 90 L40 70 L20 50 Q10 40 10 30 V20 Q10 10 20 10 Z"
+              fill="none" stroke="#1a1a1a" stroke-width="6"/>
+        <clipPath id="clipTop"><polygon points="20,20 80,20 50,70"/></clipPath>
+        <clipPath id="clipBottom"><polygon points="20,120 80,120 50,70"/></clipPath>
+        <rect id="sandTop"    x="20" y="20" width="60" height="50" clip-path="url(#clipTop)" fill="#FFD54F"/>
+        <rect id="sandBottom" x="20" y="120" width="60" height="0"  clip-path="url(#clipBottom)" fill="#FF6F91"/>
+        <rect id="stream" x="48" y="66" width="4" height="8" fill="#FF6F91" opacity="0"/>
+      </svg>
+      <div id="time">03:00</div>
+      <div id="timer-controls">
+        <input id="set-time" type="number" min="1" max="240" value="3" style="width:4rem"> min
+        <button id="apply">Set</button>
+        <button id="toggle" title="Start/Pause">▶︎</button>
+        <button id="reset"  title="Reset">↺</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // --------- Headline logic ---------
+    const headline = document.getElementById('headline');
+    const select = document.getElementById('palette');
+    const mainEl = document.querySelector('main');
+    const MAX_VMIN = 12;
+    const MIN_VMIN = 6;
+    const setFontVmin = v => headline.style.fontSize = v + 'vmin';
+
+    function fitToBox(){
+      let size = MAX_VMIN;
+      setFontVmin(size);
+      const availWidth  = Math.max(10, mainEl.clientWidth - 8);
+      const availHeight = Math.max(10, window.innerHeight - 260);
+      let guard = 120;
+      while ((headline.scrollWidth > availWidth || headline.scrollHeight > availHeight) && size > MIN_VMIN && guard--) {
+        size -= 0.4;
+        setFontVmin(size);
+      }
+    }
+    const sync = () => { headline.setAttribute('data-text', headline.textContent); fitToBox(); };
+    sync();
+    headline.addEventListener('input', sync);
+    window.addEventListener('resize', fitToBox);
+    select.addEventListener('change',()=>{ headline.className=''; headline.classList.add(select.value); sync(); });
+
+    // --------- Timer + Hourglass ---------
+    const timeEl = document.getElementById('time');
+    const toggleBtn = document.getElementById('toggle');
+    const resetBtn  = document.getElementById('reset');
+    const applyBtn  = document.getElementById('apply');
+    const setInput  = document.getElementById('set-time');
+    const sandTop   = document.getElementById('sandTop');
+    const sandBottom= document.getElementById('sandBottom');
+    const stream    = document.getElementById('stream');
+
+    let TOTAL = 180;
+    let remaining = TOTAL;
+    let running = false;
+    let tickId = null;
+
+    function fmt(t){
+      const m = Math.floor(t/60).toString().padStart(2,'0');
+      const s = Math.floor(t%60).toString().padStart(2,'0');
+      return `${m}:${s}`;
+    }
+
+    function renderHourglass(){
+      const topHeight = 50;
+      const bottomHeight = 50;
+      const frac = Math.max(0, Math.min(1, remaining / TOTAL));
+      const hTop = topHeight * frac;
+      sandTop.setAttribute('height', hTop.toFixed(2));
+      const hBot = bottomHeight * (1 - frac);
+      sandBottom.setAttribute('height', hBot.toFixed(2));
+      sandBottom.setAttribute('y', (120 - hBot).toFixed(2));
+      stream.setAttribute('opacity', running && remaining>0 && remaining<TOTAL ? '1' : '0');
+    }
+
+    function render(){
+      timeEl.textContent = fmt(remaining);
+      renderHourglass();
+      toggleBtn.textContent = running ? '❚❚' : '▶︎';
+    }
+
+    function stop(){ running=false; if(tickId){ clearInterval(tickId); tickId=null; } render(); }
+    function start(){ if(running) return; running=true; tickId = setInterval(()=>{
+      remaining = Math.max(0, remaining - 0.1);
+      if(remaining<=0){ stop(); }
+      render();
+    }, 100); render(); }
+
+    toggleBtn.addEventListener('click', ()=> running ? stop() : start());
+    resetBtn.addEventListener('click', ()=>{ remaining = TOTAL; stop(); render(); });
+    document.getElementById('hourglass').addEventListener('click', ()=> running ? stop() : start());
+    applyBtn.addEventListener('click', ()=>{
+      const mins = Math.min(240, Math.max(1, parseInt(setInput.value)||3));
+      TOTAL = mins*60;
+      remaining = TOTAL;
+      stop();
+      render();
+    });
+
+    render();
+  </script>
+</body>
+</html>
