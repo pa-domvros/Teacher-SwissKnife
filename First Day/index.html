@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Student Profile Wheel — Clickable · Colourful · Printable</title>
+  <style>
+    :root{ --ink:#0f172a; --muted:#475569; --bg:#f8fafc; --card:#ffffff; --ring:#e2e8f0; --accent:#2563eb; }
+    *{box-sizing:border-box}
+    body{ margin:0; font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial; color:var(--ink); background:linear-gradient(180deg,#f9fbff 0%,#f6f7fb 100%); }
+
+    header.page-title{padding:18px; text-align:center; background:var(--card); border-bottom:1px solid var(--ring); box-shadow:0 2px 6px rgba(0,0,0,.05)}
+    header.page-title h1{margin:0; font-size:26px; font-weight:800}
+
+    /* --- Layout: back to TWO columns for readability --- */
+    .shell{max-width:1100px; margin:24px auto; padding:20px; display:grid; gap:40px; grid-template-columns:1fr; align-items:center; justify-items:center;}
+    @media (max-width: 980px){ .shell{grid-template-columns:1fr;} }
+
+    .panel{background:var(--card); border:1px solid var(--ring); border-radius:16px; box-shadow:0 20px 35px rgba(15,23,42,.06)}
+    .panel header{display:flex; justify-content:space-between; align-items:center; padding:14px 16px; border-bottom:1px solid var(--ring); border-top-left-radius:16px; border-top-right-radius:16px}
+    .panel header h2{margin:0; font-size:18px}
+    .panel .content{padding:14px 16px}
+
+    .controls{display:flex; gap:8px}
+    button{appearance:none; border:1px solid var(--ring); background:var(--card); padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:600; color:var(--ink); box-shadow:0 6px 14px rgba(15,23,42,.06)}
+    button.primary{background:var(--accent); color:#fff; border-color:transparent}
+
+    .grid{display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px}
+    @media (max-width:640px){ .form .grid{grid-template-columns:1fr;} }
+    .field{display:flex; flex-direction:column; gap:6px}
+    .field label{font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted)}
+    .hint-text{font-size:12px; color:#64748b; margin-top:-2px}
+    .field input{border:1px solid var(--ring); border-radius:10px; padding:10px 12px; font-size:16px; background:#fff; color:var(--ink); width:100%; max-width:100%}
+    .field input:focus{outline:2px solid #bfdbfe; border-color:#bfdbfe}
+
+    .legend{display:flex; flex-wrap:wrap; gap:8px; margin-top:8px}
+    .chip{font-size:12px; padding:6px 10px; border-radius:999px; border:1px dashed var(--ring); background:#f8fafc}
+
+    /* Wheel */
+    .wheel-wrap{position:relative; display:flex; justify-content:center; align-items:center; padding:12px; width:min(850px,90vw); margin-inline:auto;}
+    svg{width:100%; max-width:100%; height:auto; display:block}
+    .hint{position:static; margin-top:16px; text-align:center; color:#334155; font-size:12px; opacity:.8}
+
+    /* Footer: centred, non-floating */
+    footer{max-width:1100px; margin:14px auto 28px; padding:10px 16px; color:#334155; font-size:14px; text-align:center; border-top:1px solid var(--ring)}
+
+    /* Print */
+    @media print{
+      body{background:#fff; -webkit-print-color-adjust:exact; print-color-adjust:exact}
+      header.page-title, .panel header, .hint, .controls{display:none !important}
+      .shell{max-width:none; margin:0; padding:0; grid-template-columns:1fr}
+      .panel{box-shadow:none; border:none}
+      footer{border-top:1px solid #e5e7eb}
+    }
+  </style>
+</head>
+<body>
+  <header class="page-title"><h1>Student Profile Wheel</h1></header>
+
+  <div class="shell">
+    <!-- WHEEL -->
+    <section class="panel wheel panel--wheel">
+      <header>
+        <h2>Interactive Wheel</h2>
+        <div class="controls">
+          <button id="resetBtn" title="Clear all">Reset</button>
+          <button class="primary" id="printBtn" title="Print or save as PDF">Print</button>
+        </div>
+      </header>
+      <div class="content">
+        <div class="wheel-wrap">
+          <svg id="wheel" viewBox="0 0 1000 1000" role="img" aria-label="Interactive profile wheel"></svg>
+          <div class="hint">Tip: click any coloured slice to jump to its field.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FORM -->
+    <section class="panel form">
+      <header>
+        <h2>Your Details</h2>
+        <div class="legend" id="legend"></div>
+      </header>
+      <div class="content">
+        <div class="grid" id="fields"></div>
+        <hr style="border:none; border-top:1px solid var(--ring); margin:16px 0" />
+        <div class="grid">
+          <div class="field">
+            <label for="name">Name</label>
+            <input id="name" placeholder="Type your name" />
+          </div>
+          <div class="field">
+            <label>&nbsp;</label>
+            <div class="chip">Added to centre + printout</div>
+          </div>
+        </div>
+        <div class="grid" style="margin-top:12px">
+          <div class="field">
+            <label for="adj1">Adjective #1</label>
+            <input id="adj1" placeholder="e.g., creative" />
+          </div>
+          <div class="field">
+            <label for="adj2">Adjective #2</label>
+            <input id="adj2" placeholder="e.g., curious" />
+          </div>
+        </div>
+        <div class="grid" style="margin-top:12px">
+          <div class="field">
+            <label for="adj3">Adjective #3</label>
+            <input id="adj3" placeholder="e.g., resilient" />
+          </div>
+          <div class="field">
+            <label>&nbsp;</label>
+            <div class="chip">These appear inside the circle</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <footer>
+    ✨✍️ Created by Panagiotis Domvros, English and Drama Teacher, All Rights Reserved ✍️✨· © <span id="year"></span>
+  </footer>
+
+  <script>
+    // ======= Fields (British spellings + explanation for Birth Order) =======
+    const fields = [
+      { key: 'birthOrder', label: 'Birth Order', hint: 'The order you were born in your family — e.g. oldest/first-born, middle, youngest, twin, only child.' },
+      { key: 'favouriteMusic', label: 'Favourite Music' },
+      { key: 'proudSkill', label: 'One Skill you are Proud of' },
+      { key: 'favouriteMovie', label: 'Favourite Movie' },
+      { key: 'favouriteBook', label: 'Favourite Book' },
+      { key: 'favouriteFood', label: 'Favourite Food' },
+      { key: 'favouriteHobby', label: 'Favourite Hobby' },
+      { key: 'favouriteColour', label: 'Favourite Colour' },
+      { key: 'personalMotto', label: 'Personal Motto' },
+      { key: 'numSiblings', label: 'Number of Siblings' }
+    ];
+
+    const state = { name:'', adjectives:['','',''], values:Object.fromEntries(fields.map(f=>[f.key,''])) };
+
+    // ======= Geometry helpers =======
+    function polarToCartesian(cx, cy, r, angleDeg){ const rad=(angleDeg-90)*Math.PI/180; return {x:cx+r*Math.cos(rad), y:cy+r*Math.sin(rad)}; }
+    function donutSlicePath(cx, cy, rInner, rOuter, startDeg, endDeg){ const so=polarToCartesian(cx,cy,rOuter,endDeg); const eo=polarToCartesian(cx,cy,rOuter,startDeg); const si=polarToCartesian(cx,cy,rInner,startDeg); const ei=polarToCartesian(cx,cy,rInner,endDeg); const large=endDeg-startDeg<=180?0:1; return [`M ${so.x} ${so.y}`,`A ${rOuter} ${rOuter} 0 ${large} 0 ${eo.x} ${eo.y}`,`L ${si.x} ${si.y}`,`A ${rInner} ${rInner} 0 ${large} 1 ${ei.x} ${ei.y}`,'Z'].join(' ');}    
+    function wrapText(text,max=18){ if(!text) return ['']; const words=text.split(/\s+/); const lines=[]; let line=''; words.forEach(w=>{ if((line+' '+w).trim().length>max){ lines.push(line.trim()); line=w; } else line+=' '+w; }); if(line.trim()) lines.push(line.trim()); return lines.slice(0,2); }
+
+    // ======= Build wheel =======
+    const svg=document.getElementById('wheel'); const cx=500, cy=500, rOuter=450, rInner=320; const g=document.createElementNS('http://www.w3.org/2000/svg','g'); svg.appendChild(g);
+
+    // centre circle
+    const inner=document.createElementNS('http://www.w3.org/2000/svg','circle'); inner.setAttribute('cx',cx); inner.setAttribute('cy',cy); inner.setAttribute('r',rInner-6); inner.setAttribute('fill','#fff'); inner.setAttribute('stroke','#e2e8f0'); inner.setAttribute('stroke-width','3'); svg.appendChild(inner);
+
+    const title=document.createElementNS('http://www.w3.org/2000/svg','text'); title.setAttribute('x',cx); title.setAttribute('y',cy-90); title.setAttribute('text-anchor','middle'); title.setAttribute('font-size','24'); title.setAttribute('font-weight','700'); title.textContent='Three Adjectives to Describe Yourself'; svg.appendChild(title);
+
+    const adjY=cy-55; const adjTexts=[0,1,2].map(i=>{ const t=document.createElementNS('http://www.w3.org/2000/svg','text'); t.setAttribute('x',cx-150); t.setAttribute('y',adjY+i*32); t.setAttribute('font-size','20'); svg.appendChild(t); return t; });
+
+    const nameLbl=document.createElementNS('http://www.w3.org/2000/svg','text'); nameLbl.setAttribute('x',cx); nameLbl.setAttribute('y',cy+120); nameLbl.setAttribute('text-anchor','middle'); nameLbl.setAttribute('font-size','18'); nameLbl.textContent='Name'; svg.appendChild(nameLbl);
+    const nameVal=document.createElementNS('http://www.w3.org/2000/svg','text'); nameVal.setAttribute('x',cx); nameVal.setAttribute('y',cy+150); nameVal.setAttribute('text-anchor','middle'); nameVal.setAttribute('font-size','26'); nameVal.setAttribute('font-weight','700'); svg.appendChild(nameVal);
+
+    const N=fields.length;
+    fields.forEach((f,i)=>{
+      const start=i*(360/N), end=(i+1)*(360/N); const hue=Math.round(i*(360/N));
+      const path=document.createElementNS('http://www.w3.org/2000/svg','path'); path.setAttribute('d',donutSlicePath(cx,cy,rInner,rOuter,start,end)); path.setAttribute('fill',`hsl(${hue} 80% 70%)`); path.setAttribute('stroke','#fff'); path.setAttribute('stroke-width','2'); path.setAttribute('data-key',f.key); path.style.cursor='pointer'; path.setAttribute('title', f.hint || f.label); path.addEventListener('click',()=>focusField(f.key)); g.appendChild(path);
+
+      const mid=(start+end)/2; const labelR=(rOuter+rInner)/2+25; const valueR=(rOuter+rInner)/2-10; const lp=polarToCartesian(cx,cy,labelR,mid); const vp=polarToCartesian(cx,cy,valueR,mid);
+      const lab=document.createElementNS('http://www.w3.org/2000/svg','text'); lab.setAttribute('x',lp.x); lab.setAttribute('y',lp.y); lab.setAttribute('text-anchor','middle'); lab.setAttribute('font-weight','800'); lab.setAttribute('font-size','20'); lab.setAttribute('transform',`rotate(${mid} ${lp.x} ${lp.y})`); lab.textContent=f.label; g.appendChild(lab);
+      const val=document.createElementNS('http://www.w3.org/2000/svg','text'); val.setAttribute('x',vp.x); val.setAttribute('y',vp.y); val.setAttribute('text-anchor','middle'); val.setAttribute('font-size','16'); val.setAttribute('transform',`rotate(${mid} ${vp.x} ${vp.y})`); val.setAttribute('data-val-for',f.key); g.appendChild(val);
+    });
+
+    // Form build + birth order hint line
+    const fieldsWrap=document.getElementById('fields'); const legend=document.getElementById('legend');
+    fields.forEach((f,i)=>{
+      const chip=document.createElement('div'); chip.className='chip'; chip.textContent=f.label; chip.title=f.hint || ''; legend.appendChild(chip);
+      const wrap=document.createElement('div'); wrap.className='field';
+      const lab=document.createElement('label'); lab.textContent=f.label; lab.setAttribute('for',f.key); wrap.appendChild(lab);
+      if(f.hint){ const small=document.createElement('div'); small.className='hint-text'; small.textContent=f.hint; wrap.appendChild(small); }
+      const input=document.createElement('input'); input.id=f.key; input.placeholder='Click slice or type here'; if(f.key==='numSiblings'){ input.type='number'; input.min='0'; input.step='1'; } wrap.appendChild(input); fieldsWrap.appendChild(wrap);
+      input.addEventListener('input',()=>{ state.values[f.key]=input.value.trim(); updateWheel(); });
+    });
+
+    function focusField(key){ const el=document.getElementById(key); if(el){ el.scrollIntoView({behavior:'smooth',block:'center'}); el.focus(); } }
+
+    function updateWheel(){ for(const k in state.values){ const el=svg.querySelector(`[data-val-for="${k}"]`); const lines=wrapText(state.values[k],18); if(el){ while(el.firstChild){ el.removeChild(el.firstChild);} lines.forEach((ln,i)=>{ const t=document.createElementNS('http://www.w3.org/2000/svg','tspan'); t.setAttribute('x', el.getAttribute('x')); t.setAttribute('dy', i===0?'0':'1.15em'); t.textContent=ln||'\u00A0'; el.appendChild(t); }); } } adjTexts.forEach((t,i)=> t.textContent=`${i+1}. ${state.adjectives[i]||''}`); nameVal.textContent=state.name||''; }
+
+    document.getElementById('name').addEventListener('input',e=>{state.name=e.target.value; updateWheel();});
+    ['adj1','adj2','adj3'].forEach((id,i)=> document.getElementById(id).addEventListener('input',e=>{state.adjectives[i]=e.target.value; updateWheel();}));
+
+    document.getElementById('resetBtn').addEventListener('click',()=>{ document.querySelectorAll('.form input').forEach(i=> i.value=''); state.name=''; state.adjectives=['','','']; for(const k in state.values) state.values[k]=''; updateWheel(); });
+    document.getElementById('printBtn').addEventListener('click',()=> window.print());
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+    updateWheel();
+  </script>
+</body>
+</html>
