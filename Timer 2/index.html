@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>15-Minute Timer</title>
+  <style>
+    :root{
+      --bg: #0b1021;
+      --text: #eaf0ff;
+      --accent: #7aa2ff;
+      --muted: #b9c0da;
+      --chip:#1a1f3a;
+      --chipBorder:#2f3464;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%; margin:0;}
+    body{
+      font-family: system-ui, sans-serif;
+      color:var(--text);
+      background: var(--bg);
+      display:flex; flex-direction:column;
+      min-height:100dvh;
+    }
+    header{
+      padding:12px 16px 6px;
+      display:grid; grid-template-columns: 1fr auto; gap:8px; align-items:center;
+      position:sticky; top:0; backdrop-filter:saturate(1.2) blur(6px);
+      background: linear-gradient(180deg, rgba(11,16,33,.9), rgba(11,16,33,.6));
+      border-bottom:1px solid #1f2446;
+      z-index:2;
+    }
+    h1{margin:0; font-size:18px; font-weight:700}
+    .credit{font-size:12px; color:var(--muted)}
+
+    .controls{display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:flex-end;}
+    select,input,button{
+      background:#1a1f3a; color:var(--text); border:1px solid #333; border-radius:8px; padding:8px 10px;}
+    input[type="number"]{width:88px}
+    button{cursor:pointer}
+    .btn{font-weight:700}
+    .ghost{background:transparent; border:1px dashed #3b437e}
+
+    /* Presets strip with 30 intervals (every 30s up to 15m) */
+    .presets-wrap{padding:8px 16px 0}
+    .presets{display:flex; gap:8px; overflow:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; padding-bottom:8px}
+    .chip{scroll-snap-align:start; white-space:nowrap; background:var(--chip); border:1px solid var(--chipBorder); border-radius:999px; padding:6px 10px; font-size:12px; cursor:pointer; user-select:none}
+    .chip[aria-pressed="true"]{outline:2px solid var(--accent)}
+
+    /* Two-column main area */
+    .main{flex:1; display:flex; gap:16px; padding:16px;}
+    .left,.right{flex:1; display:flex; align-items:center; justify-content:center; min-height:0}
+
+    /* Timer */
+    .time{font-size:clamp(56px, 11vw, 140px); text-align:center; font-variant-numeric:tabular-nums; letter-spacing:1px}
+    .time small{display:block; font-size:.4em; color:var(--muted); margin-top:6px}
+
+    /* Grid visuals (same background as page; no extra backgrounds) */
+    .grid{display:grid; grid-template-columns: repeat(12,1fr); grid-auto-rows:1fr; gap:6px; width:92%; height:92%;}
+    .cell{display:flex; align-items:center; justify-content:center; font-size:clamp(9px,2vw,21px); transition:opacity .5s, transform .5s;}
+    .cell.cut{opacity:.15; transform:scale(.6); filter:grayscale(1)}
+
+    /* Fixed footer that doesn't interfere */
+    footer{position:fixed; inset:auto 0 0 0; padding:8px 16px; display:flex; justify-content:space-between; align-items:center; gap:8px; color:var(--muted); font-size:12px; background:linear-gradient(180deg, rgba(11,16,33,0), rgba(11,16,33,.75)); pointer-events:none}
+    footer .slot{pointer-events:auto}
+
+    /* Make room so content isn't hidden behind footer when scroll exists */
+    .footer-spacer{height:44px}
+
+    @media(max-width:900px){.main{flex-direction:column}.left,.right{height:50%}}
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Timer <span style="color:var(--accent)"></span></h1>
+      <div class="credit" id="credit">Created by Panagiotis Domvros, English and Drama Teacher</div>
+    </div>
+    <div class="controls">
+      <label for="theme" style="font-size:12px;color:var(--muted)">Theme</label>
+      <select id="theme" aria-label="Theme">
+        <option value="flowers">Flowers</option>
+        <option value="dogs">Dogs</option>
+        <option value="smiles">Happy Faces</option>
+      </select>
+
+      <label for="minutes" style="font-size:12px;color:var(--muted)">Minutes</label>
+      <input id="minutes" type="number" min="1" max="15" value="15" aria-label="Minutes" />
+
+      <label for="sound" style="font-size:12px;color:var(--muted)">Chime</label>
+      <select id="sound" aria-label="Chime">
+        <option value="on" selected>On</option>
+        <option value="off">Off</option>
+      </select>
+
+      <button class="btn" id="startPause" aria-label="Start timer">▶ Start</button>
+      <button class="btn" id="reset" aria-label="Reset timer">↺ Reset</button>
+      <button class="btn ghost" id="fullscreen" aria-label="Toggle fullscreen">⛶ Fullscreen</button>
+    </div>
+  </header>
+
+  <!-- 30 presets (every 30 seconds from 00:30 to 15:00) -->
+  <div class="presets-wrap">
+    <div class="presets" id="presets" aria-label="30-second interval presets"></div>
+  </div>
+
+  <div class="main">
+    <div class="left">
+      <div class="time" id="time">00:30 <small>ready</small></div>
+    </div>
+    <div class="right">
+      <div class="grid" id="grid"></div>
+    </div>
+  </div>
+
+  <div class="footer-spacer" aria-hidden="true"></div>
+  <footer>
+    <div class="slot">Keyboard: <b>Space</b> start/pause · <b>R</b> reset · <b>F</b> fullscreen</div>
+    <div class="slot" id="footerNote">✨✍️ Created by Panagiotis Domvros, English and Drama Teacher, All Rights Reserved ✍️✨</div>
+  </footer>
+
+  <script>
+    // --- Constants ---
+    const FLOWERS = ['🌸','🌼','🌷','🌻'];
+    const DOGS = ['🐶','🐕'];
+    const SMILES = ['😀','😄','😊','🙂'];
+    const COLS = 12; // increased by two
+    const ROWS = 10;
+    const TOTAL_CELLS = COLS * ROWS; // 120
+
+    // --- Elements ---
+    const themeSel = document.getElementById('theme');
+    const minutesInput = document.getElementById('minutes');
+    const soundSel = document.getElementById('sound');
+    const startPauseBtn = document.getElementById('startPause');
+    const resetBtn = document.getElementById('reset');
+    const fullscreenBtn = document.getElementById('fullscreen');
+    const timeEl = document.getElementById('time');
+    const gridEl = document.getElementById('grid');
+    const presetsEl = document.getElementById('presets');
+
+    // --- State ---
+    let running = false;
+    let startTs = null;
+    let elapsedBefore = 0;
+    let totalMs = 30 * 1000; // default start at 00:30
+    let rafId = null;
+
+    // --- Build grid ---
+    function buildGrid(theme){
+      gridEl.style.gridTemplateColumns = `repeat(${COLS},1fr)`;
+      gridEl.innerHTML = '';
+      const arr = theme==='flowers'?FLOWERS:(theme==='dogs'?DOGS:SMILES);
+      const frag = document.createDocumentFragment();
+      for(let i=0;i<TOTAL_CELLS;i++){
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.textContent = arr[Math.floor(Math.random()*arr.length)];
+        frag.appendChild(cell);
+      }
+      gridEl.appendChild(frag);
+    }
+
+    // --- Presets (30 buttons: 00:30 .. 15:00 in 30s steps) ---
+    function buildPresets(){
+      presetsEl.innerHTML = '';
+      for(let i=1;i<=30;i++){
+        const secs = i * 30; // 30s increments
+        const m = Math.floor(secs/60);
+        const s = secs % 60;
+        const label = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+        const btn = document.createElement('button');
+        btn.className = 'chip';
+        btn.type = 'button';
+        btn.setAttribute('aria-pressed', secs*1000===totalMs ? 'true' : 'false');
+        btn.textContent = label;
+        btn.addEventListener('click', ()=>{
+          totalMs = secs * 1000;
+          // reflect in minutes input (rounded up to nearest minute for visibility)
+          minutesInput.value = Math.min(15, Math.max(1, Math.ceil(secs/60)));
+          markActivePreset();
+          reset();
+        });
+        presetsEl.appendChild(btn);
+      }
+    }
+    function markActivePreset(){
+      const children = presetsEl.children;
+      for (let i=0;i<children.length;i++){
+        const secs = (i+1)*30;
+        children[i].setAttribute('aria-pressed', secs*1000===totalMs ? 'true' : 'false');
+      }
+    }
+
+    // --- Time helpers ---
+    function fmt(ms){
+      ms = Math.max(0, ms);
+      const totalSec = Math.floor(ms/1000);
+      const m = Math.floor(totalSec/60);
+      const s = totalSec % 60;
+      return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }
+    function setTimeLabel(remainingMs, status){
+      timeEl.innerHTML = `${fmt(remainingMs)}<small>${status||''}</small>`;
+    }
+
+    // --- Visual progress ---
+    function updateVisuals(progress){ // 0..1
+      progress = Math.max(0, Math.min(1, progress));
+      const cutCount = Math.floor(progress * TOTAL_CELLS);
+      const cells = gridEl.children;
+      for (let i=0;i<cells.length;i++){
+        const cut = i < cutCount; // left-to-right top-to-bottom
+        cells[i].classList.toggle('cut', cut);
+      }
+    }
+
+    // --- Sound ---
+    function chime(){
+      if (soundSel.value !== 'on') return;
+      try{
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.connect(g); g.connect(ctx.destination);
+        o.type = 'sine'; o.frequency.value = 660;
+        g.gain.setValueAtTime(0.0001, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + 0.02);
+        o.start();
+        setTimeout(()=>{o.frequency.value=880}, 200);
+        setTimeout(()=>{o.frequency.value=523.25}, 400);
+        setTimeout(()=>{g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.7); o.stop(ctx.currentTime + 0.75)}, 650);
+      }catch(e){ /* ignore */ }
+    }
+
+    // --- Loop ---
+    function loop(){
+      const now = performance.now();
+      const elapsed = (now - startTs) + elapsedBefore;
+      const remaining = Math.max(0, totalMs - elapsed);
+      const progress = Math.min(1, elapsed / totalMs);
+      setTimeLabel(remaining, running ? 'running' : 'paused');
+      updateVisuals(progress);
+
+      if (remaining <= 0){
+        running = false; startPauseBtn.textContent = '▶ Start';
+        cancelAnimationFrame(rafId); rafId = null;
+        chime();
+        setTimeLabel(0, 'done');
+        return;
+      }
+      rafId = requestAnimationFrame(loop);
+    }
+
+    // --- Controls ---
+    function start(){
+      if (running) return;
+      running = true;
+      startTs = performance.now();
+      startPauseBtn.textContent = '⏸ Pause';
+      rafId = requestAnimationFrame(loop);
+    }
+    function pause(){
+      if (!running) return;
+      running = false;
+      elapsedBefore += performance.now() - startTs;
+      startPauseBtn.textContent = '▶ Start';
+      if (rafId) cancelAnimationFrame(rafId); rafId = null;
+      setTimeLabel(Math.max(0, totalMs - elapsedBefore), 'paused');
+    }
+    function reset(){
+      running = false; startPauseBtn.textContent = '▶ Start';
+      startTs = null; elapsedBefore = 0;
+      setTimeLabel(totalMs, 'ready');
+      updateVisuals(0);
+      if (rafId) cancelAnimationFrame(rafId); rafId = null;
+    }
+
+    // --- Events ---
+    startPauseBtn.addEventListener('click', () => running ? pause() : start());
+    resetBtn.addEventListener('click', reset);
+    themeSel.addEventListener('change', ()=>{ buildGrid(themeSel.value); updateVisuals( (running? (performance.now()-startTs+elapsedBefore) : elapsedBefore)/totalMs ); });
+    minutesInput.addEventListener('change', ()=>{
+      let mins = parseInt(minutesInput.value||15, 10);
+      if (isNaN(mins)) mins = 15;
+      mins = Math.min(15, Math.max(1, mins));
+      minutesInput.value = mins;
+      const wasRunning = running; if (wasRunning) pause();
+      totalMs = mins * 60 * 1000; // minutes input overrides preset
+      markActivePreset();
+      reset(); if (wasRunning) start();
+    });
+
+    fullscreenBtn.addEventListener('click', ()=>{
+      const el = document.documentElement;
+      if (!document.fullscreenElement){ el.requestFullscreen?.(); } else { document.exitFullscreen?.(); }
+    });
+
+    window.addEventListener('keydown', (ev)=>{
+      if (ev.code === 'Space'){ ev.preventDefault(); running ? pause() : start(); }
+      if (ev.key.toLowerCase() === 'r'){ reset(); }
+      if (ev.key.toLowerCase() === 'f'){ fullscreenBtn.click(); }
+    });
+
+    // --- Init ---
+    buildGrid(themeSel.value);
+    buildPresets();
+    setTimeLabel(totalMs, 'ready');
+    updateVisuals(0);
+  </script>
+</body>
+</html>
